@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <title>Shipping price</title>
+   
+   <script>
+      function fixPrice() {
+         var obj = document.getElementById("price");
+         var value = obj.innerHTML;
+         if(value < 0)
+            obj.innerHTML = "Invalid weight. Your weight: " + -value;
+         else
+            obj.innerHTML = "$" + parseFloat(value).toFixed(2);
+      }
+   </script>
+   
+</head>
+
+<body onload="fixPrice()">
+
+   <header>Estimated shipping cost</header>
+   
+   <p style="font-family: courier; font-size: 18px; margin-left: 16px" id="price"><%= price %></p>
+
+</body>
+
+</html>

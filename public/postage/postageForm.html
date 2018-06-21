@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <title>Submission form</title>
+</head>
+
+<body>
+
+<header style="font-family: courier">My submission form</header>
+
+<div style="padding-left: 16px">
+   <form method="GET" action="/shippingPrice">
+      <h3>Weight</h3>
+      <input type="text" name="weight"><br><br>
+      
+      <h3>Mail type</h3>
+      <select name="type">
+         <option value="ls">Letters (Stamped)</option>
+         <option value="lm">Letters (Metered)</option>
+         <option value="le">Large Envelopes (Flats)</option>
+         <option value="fc">First-Class Package Service--Retail</option>
+      </select><br><br>
+      
+      <input type="submit" value="Calculate"><br><br>
+   </form>
+</div>
+
+</body>
+
+</html>

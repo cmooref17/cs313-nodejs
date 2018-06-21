@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="myCss.css">
+   <title>Submission form</title>
+   
+   <script>
+      function callback(err, res, body) {
+         if (!err && res.statusCode === 200) {
+             displayJson(body, function(err, output) {
+                 console.log(err, output);
+             });
+         }
+      }
+   
+      function calculate(obj) {
+         var request = require('request');
+         request.post("/mathJson", {json: true, body: input}, callback);
+      }
+      
+      function displayJson(err, output) {
+         var result = document.getElementById("result");
+         result.innerHTML = output;
+      }
+}
+   </script>
+</head>
+
+<body>
+
+<header style="font-family: courier">My submission form</header>
+
+
+<input type="text" name="value1" placeholder="value1"><input type="text" name="value2" placeholder="value2"><br>
+<input type="submit" onclick="calculate(this)" name="operator" value="Add">
+<input type="submit" onclick="calculate(this)" name="operator" value="Subtract">
+<input type="submit" onclick="calculate(this)" name="operator" value="Multiply">
+<input type="submit" onclick="calculate(this)" name="operator" value="Divide"><br><br>
+
+<p>Result: <span id="result"></span></p>
+
+</body>
+
+</html>
