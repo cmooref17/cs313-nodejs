@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <title>My webpage</title>
+   <script>
+      function setBackgroundSize() {
+         var w = window.innerWidth;
+         var h = window.innerHeight;
+         var size = w + "px " + h + "px";
+         var body = document.getElementById('body');
+         body.style.backgroundImage="url(/images/background.jpg)";
+         body.style.backgroundSize = size;
+      }
+      
+      function connectToDb() {
+         db = 
+      }
+   </script>
+   
+</head>
+
+<body onresize="setBackgroundSize()" onload="setBackgroundSize()" id="body">
+   <div class="leftSign">
+      <header class="leftSignText">Animal Crossing<br>Outpost</header>
+   </div>
+   
+   <div style="text-align: center">
+      <div class="gifts">
+         <header>Your free gifts for today!</header><hr style="margin-left: 16px; margin-right: 16px"><br>
+         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
+         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
+         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
+         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span><br>
+         
+   </div></div>
+
+
+</body>
+
+</html>

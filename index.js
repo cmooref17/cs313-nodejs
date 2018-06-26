@@ -2,6 +2,10 @@ const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 
+function connectToDb(req, res) {
+   
+}
+
 function calculatePostage(req, res) {
    var weight = Number(req.query.weight);
    var type = req.query.type;
@@ -125,6 +129,7 @@ express()
   .get('/math', math)
   .get('/shippingPrice', calculatePostage)
   .get('/mathJson', mathJson)
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`))
+  .get('/connectToDb', connectToDb)
+  .listen(PORT, () => console.log('Listening on ${ PORT }'))
 
   
