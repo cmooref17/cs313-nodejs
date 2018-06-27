@@ -2,13 +2,13 @@ const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 
+/*
 function connectToDb(req, res) {
    const query = client.query(
       'SELECT username FROM "user" WHERE username=:username';
    query.on('end', () => { client.end(); });
 }
 
-/*
 function addUserToDb(req, res) {
    router.post('/api/v1/todos', (req, res, next) => {
       const results = [];
@@ -154,11 +154,13 @@ function mathJson(req, res) {
    res.json({ result: result });
 }
 
+/*
 const express = require('express');
 const router = express.Router();
 const pg = require('pg');
 const path = require('path');
 const connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/todo';
+*/
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
@@ -168,7 +170,7 @@ express()
   .get('/math', math)
   .get('/shippingPrice', calculatePostage)
   .get('/mathJson', mathJson)
-  .get('/connectToDb', connectToDb)
+  //.get('/connectToDb', connectToDb)
   .listen(PORT, () => console.log('Listening on ${ PORT }'))
 
   
