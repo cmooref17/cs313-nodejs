@@ -8,6 +8,7 @@ function connectToDb(req, res) {
    query.on('end', () => { client.end(); });
 }
 
+/*
 function addUserToDb(req, res) {
    router.post('/api/v1/todos', (req, res, next) => {
       const results = [];
@@ -38,6 +39,7 @@ function addUserToDb(req, res) {
       });
    });
 }
+*/
 
 function calculatePostage(req, res) {
    var weight = Number(req.query.weight);
