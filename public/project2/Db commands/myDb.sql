@@ -6,7 +6,8 @@ CREATE TABLE "user"
    password VARCHAR(255) NOT NULL,
    username VARCHAR(100) UNIQUE NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
-   bells INT DEFAULT(100)
+   bells INT DEFAULT(100),
+   gift_date INT DEFAULT(0)
 );
 
 CREATE TABLE item

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <title>Login</title>
+   <script>
+      function setBackgroundSize() {
+         var load = true;
+         if(load) {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            var size = w + "px " + h + "px";
+            var body = document.getElementById('body');
+            body.style.backgroundImage = "url(/images/background.jpg)";
+            body.style.backgroundSize = size;
+         }
+      }
+      
+      function login() {
+         var username = document.getElementById("username").value;
+         var password = document.getElementById("password").value;
+      }
+   </script>
+   
+</head>
+
+<body onresize="setBackgroundSize()" onload="setBackgroundSize()" id="body">
+   <div class="leftSign">
+      <header class="leftSignText"><a class="toOutpost" href="home.html">Trading<br>Outpost</a></header>
+   </div>
+   
+   <!-- Two divs to wrap content and center it --->
+   <div class="loginOuter"><div class="loginInner">
+      <header style="font-size: 20px; margin: 0px">Sign in</header><hr>
+      <span class="loginLeft"><header style="margin: 0px">Username</header></span>
+         <span class="loginRight"><input id="username" name="username" type="text" placeholder="Username"></span><br>
+      <span class="loginLeft"><header style="margin: 0px">Password</header></span>
+         <span class="loginRight"><input id="password" name="password" type="password" placeholder="Password"></span><br>
+      <header style="margin: 8px"><button onclick="login()" style="width: 75px">Login</button></header>
+   </div></div>
+
+</body>
+
+</html>

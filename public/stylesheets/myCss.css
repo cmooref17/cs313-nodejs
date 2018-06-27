@@ -25,9 +25,12 @@ body {
 header {
    font-family: courier;
    text-align: center;
+   margin: 8px;
 }
 
 div.leftSign {
+   position: absolute;
+   left: 0;
    width: 300px;
    height: 150px;
    margin: 0px;
@@ -37,25 +40,64 @@ div.leftSign {
    background-repeat: no-repeat;
 }
 
+div.leftSign > a {
+   text-decoration: none;
+}
+
+div.rightSign {
+   position: absolute;
+   right: 0;
+   width: 300px;
+   height: 150px;
+   margin: 0px;
+   padding: 8px;
+   background-image: url(/images/hanging_sign.png);
+   background-size: 100% 100%;
+   background-repeat: no-repeat;
+}
+
+
 header.leftSignText {
    text-align: center;
    font-family: polygon;
    font-weight: normal;
-   font-size: 28px;
-   color: rgb(180, 180, 180);
+   font-size: 26px;
+   color: rgb(75, 125, 175);
    margin: 0px;
    margin-top: 50px;
-   padding: 8px;
+   padding: 10px;
    padding-left: 16px;
    padding-right: 16px;
+}
+
+.rightSign > header > a {
+   font-size: 22px;
+}
+
+.rightSign > header > a:hover {
+   text-decoration: underline;
+}
+
+.promptLogin {
+   text-align: center;
+   font-family: courier;
+   font-weight: normal;
+   font-size: 20px;
+   color: gray;
+   margin: 0px;
+   margin-top: 55px;
+   padding: 10px;
+   padding-left: 16px;
+   padding-right: 16px;
+   text-decoration: none;
 }
 
 div.gifts {
    display: inline-block;
    margin: auto;
    padding: 0px;
-   background-color: rgb(100, 100, 100, .5);
-   border-radius: 16px;
+   background-color: rgb(150, 150, 150, .25);
+   border-radius: 8px;
 }
 
 div.gifts > header {
@@ -71,4 +113,50 @@ div.gifts > header {
    width: 250px;
    height: 250px;
    display: inline-block;
+}
+
+div.loginOuter {
+   position: absolute;
+   top: 0;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: auto;
+   width: 300px;
+   height: 150px;
+}
+
+div.loginInner {
+   background-color: rgb(150, 150, 150, .25);
+   border-radius: 8px;
+   padding: 16px;
+   padding-bottom: 4px;
+   display: inline-block;
+}
+
+.loginLeft {
+   display: inline-block;
+   width: 30%;
+}
+
+.loginRight {
+   display: inline-block;
+   width: 65%;
+}
+
+.loginRight > input {
+   width: 100%;
+}
+
+.loginInner > button {
+   
+}
+
+.toOutpost {
+   text-decoration: none;
+   color: white;
+}
+
+.toOutpost:hover {
+   text-decoration: underline;
 }

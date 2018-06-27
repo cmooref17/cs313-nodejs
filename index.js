@@ -3,7 +3,40 @@ const path = require('path')
 const PORT = process.env.PORT || 5000
 
 function connectToDb(req, res) {
-   
+   const query = client.query(
+      'SELECT username FROM "user" WHERE username=:username';
+   query.on('end', () => { client.end(); });
+}
+
+function addUserToDb(req, res) {
+   router.post('/api/v1/todos', (req, res, next) => {
+      const results = [];
+      // Grab data from http request
+      const data = {text: req.body.text, complete: false};
+      // Get a Postgres client from the connection pool
+      pg.connect(connectionString, (err, client, done) => {
+         // Handle connection errors
+         if(err) {
+            done();
+            console.log(err);
+            return res.status(500).json({success: false, data: err});
+         }
+         // SQL Query > Insert Data
+         client.query('INSERT INTO "user"(first_name, last_name, username, password, email) values($1, $2, $3, $4, $5)',
+         [data.first_name, data.last_name, data.username, data.password, data.email]);
+         // SQL Query > Select Data
+         const query = client.query('SELECT * FROM "user" ORDER BY id ASC');
+         // Stream results back one row at a time
+         query.on('row', (row) => {
+            results.push(row);
+         });
+         // After all data is returned, close connection and return results
+         query.on('end', () => {
+            done();
+            return res.json(results);
+         });
+      });
+   });
 }
 
 function calculatePostage(req, res) {
@@ -68,7 +101,6 @@ function calculatePostage(req, res) {
    console.log("Price: " + price);
    res.render('shippingPrice', { price: price});
 }
-
 function math(req, res) {
    var value1 = Number(req.query.value1);
    var value2 = Number(req.query.value2);
@@ -94,7 +126,6 @@ function math(req, res) {
    console.log(result + '\n');
    res.render('results', {result: result});
 }
-
 function mathJson(req, res) {
    var value1 = Number(req.query.value1);
    var value2 = Number(req.query.value2);
@@ -120,6 +151,12 @@ function mathJson(req, res) {
    console.log(result + '\n');
    res.json({ result: result });
 }
+
+const express = require('express');
+const router = express.Router();
+const pg = require('pg');
+const path = require('path');
+const connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/todo';
 
 express()
   .use(express.static(path.join(__dirname, 'public')))

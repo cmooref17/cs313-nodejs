@@ -5,34 +5,50 @@
    <title>My webpage</title>
    <script>
       function setBackgroundSize() {
-         var w = window.innerWidth;
-         var h = window.innerHeight;
-         var size = w + "px " + h + "px";
-         var body = document.getElementById('body');
-         body.style.backgroundImage="url(/images/background.jpg)";
-         body.style.backgroundSize = size;
+         var load = true;
+         if(load) {
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            var size = w + "px " + h + "px";
+            var body = document.getElementById('body');
+            body.style.backgroundImage = "url(/images/background.jpg)";
+            body.style.backgroundSize = size;
+         }
       }
       
-      function connectToDb() {
-         db = 
+      function loadGifts() {
+         var load = false;
+         var gifts = document.getElementById("gifts");
+         if(load) {
+            gifts.innerHTML = "<header>Your free gifts for today!</header><hr style='margin-left: 16px; margin-right: 16px'><br>";
+            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span><br>";
+         }
+         else {
+            gifts.innerHTML = "<header>Out of daily gifts</header><br>";
+         }
       }
+  
    </script>
    
 </head>
 
 <body onresize="setBackgroundSize()" onload="setBackgroundSize()" id="body">
-   <div class="leftSign">
-      <header class="leftSignText">Animal Crossing<br>Outpost</header>
-   </div>
+   <div style="height: 250px">
+      <div class="leftSign">
+         <header class="leftSignText">My<br>Outpost</header>
+      </div>
+      <div class="rightSign">
+         <header class="promptLogin">You are not logged in<br><a href="login.html" class="promptLogin" style="color: white">Login</a></header>
+   </div></div>
    
-   <div style="text-align: center">
-      <div class="gifts">
-         <header>Your free gifts for today!</header><hr style="margin-left: 16px; margin-right: 16px"><br>
-         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
-         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
-         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span>
-         <span class="gift"><a href="/gift"><img class="present" src="/images/present.png"></a></span><br>
-         
+   <!-- Two divs to wrap content and center it --->
+   <div style="text-align: center"><div id="gifts" class="gifts">
+      <script type="text/javascript">
+         loadGifts();
+      </script>
    </div></div>
 
 
