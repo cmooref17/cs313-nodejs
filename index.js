@@ -2,11 +2,15 @@ const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 
-/*
-function connectToDb(req, res) {
-   const query = client.query(
-      'SELECT username FROM "user" WHERE username=:username';
-   query.on('end', () => { client.end(); });
+
+function login(req, res) {
+   console.log('Called login function');
+   var username = req.query.username;
+   var password = req.query.password;
+   var hashedPassword = passwordHash.generate(password);
+   console.log(username);
+   console.log(password);
+   console.log(hashedPassword);
 }
 
 function addUserToDb(req, res) {
@@ -39,7 +43,7 @@ function addUserToDb(req, res) {
       });
    });
 }
-*/
+
 
 function calculatePostage(req, res) {
    var weight = Number(req.query.weight);
@@ -154,13 +158,12 @@ function mathJson(req, res) {
    res.json({ result: result });
 }
 
-/*
-const express = require('express');
+//const express = require('express');
+//const path = require('path');
 const router = express.Router();
 const pg = require('pg');
-const path = require('path');
 const connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/todo';
-*/
+var passwordHash = require('password-hash');
 
 express()
   .use(express.static(path.join(__dirname, 'public')))
@@ -170,7 +173,7 @@ express()
   .get('/math', math)
   .get('/shippingPrice', calculatePostage)
   .get('/mathJson', mathJson)
-  //.get('/connectToDb', connectToDb)
+  .get('/login', login)
   .listen(PORT, () => console.log('Listening on ${ PORT }'))
 
   

@@ -34,8 +34,8 @@
             window.innerHTML += "<span class='loginRight'><input id='password1' name='password1' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password</header></span>";
             window.innerHTML += "<span class='loginRight'><input id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
-            window.innerHTML += "<header style='margin: 8px'><button onclick='register()' style='width: 75px'>Sign up</button></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='' onclick='changeWindow()'>Already have an account?</a></header>";
+            window.innerHTML += "<header style='margin: 8px'><button onclick='register()' style='width: 120px'>Create account</button></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Already have an account?</a></header>";
          }
          else {
             document.getElementById("outer").style.width="300px";
@@ -45,13 +45,27 @@
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
             window.innerHTML += "<span class='loginRight'><input id='password' name='password' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "<header style='margin: 8px'><button onclick='login()' style='width: 75px'>Login</button></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='' onclick='changeWindow()'>Don't have an account?</a></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Don't have an account?</a></header>";
          }
+      }
+      
+      function loggedIn() {
+         alert("Logged in successfully");
       }
       
       function login() {
          var username = document.getElementById("username").value;
          var password = document.getElementById("password").value;
+         
+         var xmlHttp = new XMLHttpRequest();
+         xmlHttp.onreadystatechange = function() { 
+            alert(xmlHttp.readyState);
+            alert(xmlHttp.status);
+            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+               alert("good");
+         }
+         xmlHttp.open("GET", "/login?username=" + username + "&password=" + password, true); // true for asynchronous 
+         xmlHttp.send(null);
       }
       
       function register() {
