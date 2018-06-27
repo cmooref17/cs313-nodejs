@@ -58,9 +58,7 @@
          var password = document.getElementById("password").value;
          
          var xmlHttp = new XMLHttpRequest();
-         xmlHttp.onreadystatechange = function() { 
-            alert(xmlHttp.readyState);
-            alert(xmlHttp.status);
+         xmlHttp.onreadystatechange = function() {
             if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
                alert("good");
          }
@@ -69,8 +67,21 @@
       }
       
       function register() {
-         var username = document.getElementById("username").value;
-         var password = document.getElementById("password").value;
+         var formData = {
+            first_name: document.getElementById("first_name").value, 
+            last_name: document.getElementById("last_name").value, 
+            username: document.getElementById("username").value,
+            password: document.getElementById("password").value,
+            email: document.getElementById("email").value
+         };
+         
+         request.post({
+            url: '/register',
+            form: formData
+         },
+         function (err, httpResponse, body) {
+            console.log(err, body);
+         });
       }
       
       function changeWindow() {

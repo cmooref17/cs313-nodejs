@@ -9,39 +9,76 @@ function login(req, res) {
    var password = req.query.password;
    var hashedPassword = passwordHash.generate(password);
    console.log(username);
-   console.log(password);
    console.log(hashedPassword);
+   
+   var uri = "postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am";
+   
+   const pg = require('pg');
+   const pool = new pg.Pool();
+   
+   
+
+   pool.query('SELECT username, password FROM "user" WHERE username = $1 AND password = $2', [username, password], (err, res) => {
+      if (err) {
+         throw err
+      }
+
+      console.log('user: ', res.rows[0])
+   })
 }
 
-function addUserToDb(req, res) {
-   router.post('/api/v1/todos', (req, res, next) => {
-      const results = [];
-      // Grab data from http request
-      const data = {text: req.body.text, complete: false};
-      // Get a Postgres client from the connection pool
-      pg.connect(connectionString, (err, client, done) => {
-         // Handle connection errors
-         if(err) {
-            done();
-            console.log(err);
-            return res.status(500).json({success: false, data: err});
+function register(req, res) {
+   console.log("Attempting to register user");
+   const data = req.query;
+   const hashedPassword = passwordHash.generate(data.password);
+   const text = 'INSERT INTO "user" (first_name, last_name, username, password, email) VALUES($1, $2, $3, $4, $5)';
+   const values = [data.first_name, data.last_name, data.username, hashedPassword, data.email];
+   
+   const { Pool } = require('pg');
+   const pool = new Pool();
+   
+   pool.on('error', (err, client) => {
+      console.error('Unexpected error on idle client', err)
+      process.exit(-1)
+   })
+   
+   // callback - checkout a client
+   pool.connect((err, client, done) => {
+      if (err) throw err
+      client.query('SELECT * FROM "user" WHERE username = $1', [username], (err, res) => {
+         done()
+         if (err) {
+            console.log(err.stack)
+         } else {
+            console.log(res.rows[0])
          }
-         // SQL Query > Insert Data
-         client.query('INSERT INTO "user"(first_name, last_name, username, password, email) values($1, $2, $3, $4, $5)',
-         [data.first_name, data.last_name, data.username, data.password, data.email]);
-         // SQL Query > Select Data
-         const query = client.query('SELECT * FROM "user" ORDER BY id ASC');
-         // Stream results back one row at a time
-         query.on('row', (row) => {
-            results.push(row);
-         });
-         // After all data is returned, close connection and return results
-         query.on('end', () => {
-            done();
-            return res.json(results);
-         });
-      });
-   });
+      })
+   })
+   
+   // promise - checkout a client
+   pool.connect()
+   .then(client => {
+      return client.query('SELECT * FROM "user" WHERE username = $1', [username])
+         .then(res => {
+         client.release()
+         console.log(res.rows[0])
+      })
+      .catch(e => {
+         client.release()
+         console.log(err.stack)
+      })
+   })
+   
+   // async/await - check out a client
+   (async () => {
+      const client = await pool.connect()
+      try {
+         const res = await client.query('SELECT * FROM "user" WHERE username = $1', [username])
+         console.log(res.rows[0])
+      } finally {
+         client.release()
+      }
+   })().catch(e => console.log(e.stack))
 }
 
 
@@ -165,6 +202,8 @@ const pg = require('pg');
 const connectionString = process.env.DATABASE_URL || 'postgres://localhost:5432/todo';
 var passwordHash = require('password-hash');
 
+
+
 express()
   .use(express.static(path.join(__dirname, 'public')))
   .set('views', path.join(__dirname, 'views'))
@@ -174,6 +213,7 @@ express()
   .get('/shippingPrice', calculatePostage)
   .get('/mathJson', mathJson)
   .get('/login', login)
+  .get('/register', register)
   .listen(PORT, () => console.log('Listening on ${ PORT }'))
 
   

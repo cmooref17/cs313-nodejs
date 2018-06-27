@@ -152,10 +152,6 @@ div.loginInner {
    width: 100%;
 }
 
-.loginInner > button {
-   
-}
-
 .toOutpost {
    text-decoration: none;
    color: white;
@@ -165,7 +161,7 @@ div.loginInner {
    text-decoration: underline;
 }
 
-.switchWindow {
+.switchWindow > a {
    font-family: times;
    color: blue;
 }
