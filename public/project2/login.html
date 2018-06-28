@@ -1,10 +1,35 @@
 <!DOCTYPE html>
 
 <head>
-   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <link rel="stylesheet" href="/stylesheets/login.css">
    <title>Login</title>
    <script>
       signUp = false;
+      minPasswordLength = 8;
+      
+      /*function validatePassword() {
+         var password = document.getElementById("password1").value;
+         var password2 = document.getElementById("password2").value;
+         if(password != password2) {
+         
+         }
+         else {
+            //Iterate through password
+            var i = 0;
+            bool hasUppercase = false;
+            while(password[i]) {
+               if(password[i])
+                  hasUppercase = true;
+            }
+            if(!hasUppercase || i < minPasswordLength) {
+               //Bad password
+            }
+            
+         }
+      }
+      */
+      
+      
       function setBackgroundSize() {
          var load = true;
          if(load) {
@@ -21,67 +46,36 @@
          var window = document.getElementById("inner");
          if(signUp) {
             document.getElementById("outer").style.width="350px";
-            window.innerHTML =  "<header style='font-size: 20px; margin: 0px'>Sign up</header><hr>";
+            window.innerHTML =  "<form id='formSignUp' method='POST' action='/signUp'>";
+            window.innerHTML += "<header style='font-size: 20px; margin: 0px'>Sign up</header><hr>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>First name</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='firstName' name='firstName' type='text' placeholder='First name'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='firstName' name='firstName' type='text' placeholder='First name'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Last name</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='lastName' name='lastName' type='text' placeholder='Last name'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='lastName' name='lastName' type='text' placeholder='Last name'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='username' name='username' type='text' placeholder='Username'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='username' name='username' type='text' placeholder='Username'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Email</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='email' name='email' type='text' placeholder='Email'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='email' name='email' type='text' placeholder='Email'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='password1' name='password1' type='password' placeholder='Password'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password1' name='password1' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
-            window.innerHTML += "<header style='margin: 8px'><button onclick='register()' style='width: 120px'>Create account</button></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Already have an account?</a></header>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
+            window.innerHTML += "<header style='margin: 8px'><input form='formSignUp' type='submit' style='width: 120px' value='Create account'></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Already have an account?</a></header>";
+            window.innerHTML += "</form>";
          }
          else {
             document.getElementById("outer").style.width="300px";
-            window.innerHTML =  "<header style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
+            window.innerHTML =  "<form id='formSignIn' method='GET' action='/signIn'>";
+            window.innerHTML += "<header style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='username' name='username' type='text' placeholder='Username'></span><br>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='username' name='username' type='text' placeholder='Username'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input id='password' name='password' type='password' placeholder='Password'></span><br>";
-            window.innerHTML += "<header style='margin: 8px'><button onclick='login()' style='width: 75px'>Login</button></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Don't have an account?</a></header>";
+            window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='password' name='password' type='password' placeholder='Password'></span><br>";
+            window.innerHTML += "<header style='margin: 8px'><input form='formSignIn' type='submit' style='width: 75px' value='Login'></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Don't have an account?</a></header>";
+            window.innerHTML += "</form>";
          }
-      }
-      
-      function loggedIn() {
-         alert("Logged in successfully");
-      }
-      
-      function login() {
-         var username = document.getElementById("username").value;
-         var password = document.getElementById("password").value;
-         
-         var xmlHttp = new XMLHttpRequest();
-         xmlHttp.onreadystatechange = function() {
-            if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-               alert("good");
-         }
-         xmlHttp.open("GET", "/login?username=" + username + "&password=" + password, true); // true for asynchronous 
-         xmlHttp.send(null);
-      }
-      
-      function register() {
-         var formData = {
-            first_name: document.getElementById("first_name").value, 
-            last_name: document.getElementById("last_name").value, 
-            username: document.getElementById("username").value,
-            password: document.getElementById("password").value,
-            email: document.getElementById("email").value
-         };
-         
-         request.post({
-            url: '/register',
-            form: formData
-         },
-         function (err, httpResponse, body) {
-            console.log(err, body);
-         });
       }
       
       function changeWindow() {

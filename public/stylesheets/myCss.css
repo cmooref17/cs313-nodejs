@@ -56,7 +56,6 @@ div.rightSign {
    background-repeat: no-repeat;
 }
 
-
 header.leftSignText {
    text-align: center;
    font-family: polygon;
@@ -113,55 +112,4 @@ div.gifts > header {
    width: 250px;
    height: 250px;
    display: inline-block;
-}
-
-div.loginOuter {
-   position: absolute;
-   top: 25%;
-   bottom: 0;
-   left: 0;
-   right: 0;
-   margin: auto;
-   width: 350px;
-}
-
-div.loginInner {
-   width: 100%;
-   background-color: rgb(150, 150, 150, .25);
-   border-radius: 8px;
-   padding: 16px;
-   padding-bottom: 4px;
-   display: inline-block;
-}
-
-.loginLeft {
-   display: inline-block;
-   width: 45%;
-   margin-right: 4px;
-   margin-bottom: 4px;
-}
-
-.loginRight {
-   display: inline-block;
-   width: 50%;
-   margin-left: 4px;
-   margin-bottom: 4px;
-}
-
-.loginRight > input {
-   width: 100%;
-}
-
-.toOutpost {
-   text-decoration: none;
-   color: white;
-}
-
-.toOutpost:hover {
-   text-decoration: underline;
-}
-
-.switchWindow > a {
-   font-family: times;
-   color: blue;
 }

@@ -1,0 +1,102 @@
+@font-face {
+    font-family: pressStart;
+    src: url(/fonts/pressStart2P.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: polygon;
+    src: url(/fonts/polygonParty.ttf) format('truetype');
+}
+
+body {
+   margin: 0px;
+   padding: 0px;
+   background-color: #cccccc;
+   background-repeat: no-repeat;
+}
+
+header {
+   font-family: courier;
+   text-align: center;
+   margin: 8px;
+}
+
+div.leftSign {
+   position: absolute;
+   left: 0;
+   width: 300px;
+   height: 150px;
+   margin: 0px;
+   padding: 8px;
+   background-image: url(/images/hanging_sign.png);
+   background-size: 100% 100%;
+   background-repeat: no-repeat;
+}
+
+div.leftSign > a {
+   text-decoration: none;
+}
+
+header.leftSignText {
+   text-align: center;
+   font-family: polygon;
+   font-weight: normal;
+   font-size: 26px;
+   color: rgb(75, 125, 175);
+   margin: 0px;
+   margin-top: 50px;
+   padding: 10px;
+   padding-left: 16px;
+   padding-right: 16px;
+}
+
+div.loginOuter {
+   position: absolute;
+   top: 25%;
+   bottom: 0;
+   left: 0;
+   right: 0;
+   margin: auto;
+   width: 350px;
+}
+
+div.loginInner {
+   width: 100%;
+   background-color: rgb(150, 150, 150, .25);
+   border-radius: 8px;
+   padding: 16px;
+   padding-bottom: 4px;
+   display: inline-block;
+}
+
+.loginLeft {
+   display: inline-block;
+   width: 45%;
+   margin-right: 4px;
+   margin-bottom: 4px;
+}
+
+.loginRight {
+   display: inline-block;
+   width: 50%;
+   margin-left: 4px;
+   margin-bottom: 4px;
+}
+
+.loginRight > input {
+   width: 100%;
+}
+
+.toOutpost {
+   text-decoration: none;
+   color: white;
+}
+
+.toOutpost:hover {
+   text-decoration: underline;
+}
+
+.switchWindow > a {
+   font-family: times;
+   color: blue;
+}
