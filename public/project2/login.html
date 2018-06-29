@@ -3,15 +3,19 @@
 <head>
    <link rel="stylesheet" href="/stylesheets/login.css">
    <title>Login</title>
+   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   
    <script>
       signUp = false;
       minPasswordLength = 8;
       
-      /*function validatePassword() {
+      function validatePassword() {
+        /*
          var password = document.getElementById("password1").value;
          var password2 = document.getElementById("password2").value;
          if(password != password2) {
-         
+            return -1;
          }
          else {
             //Iterate through password
@@ -21,13 +25,51 @@
                if(password[i])
                   hasUppercase = true;
             }
-            if(!hasUppercase || i < minPasswordLength) {
-               //Bad password
-            }
-            
+            if(!hasUppercase)
+               return -2;
+            else if(i < minPasswordLength)
+               return -3;
+            */
+            return 1;
          }
+      
+      function signIn() {
+         var username = document.getElementById("username").value;
+         var password = document.getElementById("password").value;
+      
+         $.get("/signIn?username=" + username + "&password=" + password, function(data, status){
+            alert("Data: " + data + "\nStatus: " + status);
+         });
       }
-      */
+      
+      function register() {
+         alert("Registering...");
+         
+         var code = validatePassword();
+         if(code < 1) {
+            if(code == -1)
+               alert("Passwords don't match");
+            else if(code == -2)
+               alert("Password must have an uppercase");
+            else if(code == -3)
+               alert("Passwords must be at least " + minPasswordLength + " long.");
+            else
+               alert("Unknown error in password");
+            return false;
+         }
+         
+         var json = {firstName: document.getElementById("firstName").value,
+                     lastName: document.getElementById("lastName").value,
+                     username: document.getElementById("username").value,
+                     password: document.getElementById("password1").value,
+                     email: document.getElementById("email").value};
+         alert(json);
+         $.post("/register", json, function (data, status) {
+            alert("Data: " + data + "\nStatus: " + status);
+         });
+      }
+
+         
       
       
       function setBackgroundSize() {
@@ -60,21 +102,21 @@
             window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password1' name='password1' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password</header></span>";
             window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
-            window.innerHTML += "<header style='margin: 8px'><input form='formSignUp' type='submit' style='width: 120px' value='Create account'></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Already have an account?</a></header>";
             window.innerHTML += "</form>";
+            window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='register()'>Create account</button></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Already have an account?</a></header>";
          }
          else {
             document.getElementById("outer").style.width="300px";
             window.innerHTML =  "<form id='formSignIn' method='GET' action='/signIn'>";
-            window.innerHTML += "<header style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
+            window.innerHTML +=  "<header style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username</header></span>";
             window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='username' name='username' type='text' placeholder='Username'></span><br>";
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
             window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='password' name='password' type='password' placeholder='Password'></span><br>";
-            window.innerHTML += "<header style='margin: 8px'><input form='formSignIn' type='submit' style='width: 75px' value='Login'></header>";
-            window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Don't have an account?</a></header>";
             window.innerHTML += "</form>";
+            window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='signIn()'>Login</button></header>";
+            window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Don't have an account?</a></header>";
          }
       }
       
