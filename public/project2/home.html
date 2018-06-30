@@ -3,6 +3,9 @@
 <head>
    <link rel="stylesheet" href="/stylesheets/myCss.css">
    <title>My webpage</title>
+   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   
    <script>
       function setBackgroundSize() {
          var load = true;
@@ -16,6 +19,19 @@
          }
       }
       
+      function drawHeader() {
+         var user;
+         var right = document.getElementById("rightSign");
+         right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
+         $.get("/getSession", function(data, status) {
+            if(data) == '-1')
+               alert(data);
+            else
+               alert(data);
+               //right.innerHTML = "<header class='promptLogin'>Welcome <br>" + user + "!</header>";
+         });
+      }
+      
       function loadGifts() {
          var load = false;
          var gifts = document.getElementById("gifts");
@@ -27,7 +43,7 @@
             gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span><br>";
          }
          else {
-            gifts.innerHTML = "<header>Out of daily gifts</header><br>";
+            gifts.innerHTML = "<header>You are not logged in</header><br>";
          }
       }
   
@@ -38,12 +54,16 @@
 <body onresize="setBackgroundSize()" onload="setBackgroundSize()" id="body">
 
    <div style="height: 250px"> <!-- Header --->
-      <div class="leftSign">
+      <div id="leftSign" class="leftSign">
          <header class="leftSignText">Trading<br>Outpost</header>
       </div>
-      <div class="rightSign">
+      <div id="rightSign" class="rightSign">
          <header class="promptLogin">You are not logged in<br><a href="login.html" class="promptLogin" style="color: white">Login</a></header>
    </div></div>
+   
+   <script type="text/javascript">
+      drawHeader();
+   </script>
    
    <!-- Two divs to wrap content and center it --->
    <div style="text-align: center"><div id="gifts" class="gifts">
