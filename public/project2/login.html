@@ -8,15 +8,56 @@
    
    <script>
       signUp = false;
-      minPasswordLength = 8;
+      minPasswordLength = 3;
+      error = false;
+      
+      function clearErrors() {
+         var x = document.getElementsByClassName("error");
+         for(var i = 0; x[i]; i++) {
+            x[i].innerHTML = "";
+         }
+      }
+      
+      function displayPasswordError() {
+         var head = document.getElementById("head");
+         var password1 = document.getElementById("password1").value;
+         var password2 = document.getElementById("password2").value;
+         
+         if(password1 == password2 || password1.length == 0 || password2.length == 0) {
+            error = false;
+            clearErrors();
+         }
+         else if(password1.length < minPasswordLength || password2.length < minPasswordLength) {
+            error = true;
+            setTimeout(function() { if(error) head.innerHTML = "Sign up<span class='error'><br>Passwords must be at least " + minPasswordLength + " long.</span>"; }, 1000);
+            if(password1.length < minPasswordLength)
+               document.getElementById("errorPassword1").innerHTML="*";
+            if(password2.length < minPasswordLength)
+               document.getElementById("errorPassword2").innerHTML="*";
+         }
+         else if(password1 != password2) {
+            error = true;
+            setTimeout(function() { if(error) head.innerHTML = "Sign up<span class='error'><br>Passwords don't match</span>"; }, 1000);
+            document.getElementById("errorPassword1").innerHTML="*";
+            document.getElementById("errorPassword2").innerHTML="*";
+         }
+         else {
+            head.innerHTML = "Sign up<span class='error'><br>Unexpected error</span>";
+            document.getElementById("errorPassword1").innerHTML="*";
+            document.getElementById("errorPassword2").innerHTML="*";
+         }
+      }
       
       function validatePassword() {
-        /*
          var password = document.getElementById("password1").value;
          var password2 = document.getElementById("password2").value;
          if(password != password2) {
             return -1;
          }
+         else if(password.length < minPasswordLength) {
+            return -3;
+         }
+         /*
          else {
             //Iterate through password
             var i = 0;
@@ -29,32 +70,84 @@
                return -2;
             else if(i < minPasswordLength)
                return -3;
-            */
+         */
             return 1;
          }
       
       function signIn() {
+         var head = document.getElementById("head");
+         clearErrors();
          var username = document.getElementById("username").value;
          var password = document.getElementById("password").value;
       
+         if(username.length == 0 || password.length == 0) {
+            if(username.length == 0)
+               document.getElementById("errorUsername").innerHTML="*";
+            if(password.length == 0)
+               document.getElementById("errorPassword").innerHTML="*";
+            head.innerHTML = "Sign in<span class='error'><br>Fill in missing fields</span>";
+            return false;
+         }
+      
          $.get("/signIn?username=" + username + "&password=" + password, function(data, status){
-            alert("Data: " + data + "\nStatus: " + status);
+            if(data == '1') {
+               alert("Login successful");
+               window.location = "/project2/home.html";
+            }
+            else if(data == '-1') {
+               head.innerHTML = "Sign in<span class='error'><br>Error with username<br>and/or password</span>";
+               document.getElementById("password").value = "";
+            }
+            else {
+               alert("Got unexepected error: " + data);
+            }
          });
       }
       
       function register() {
-         alert("Registering...");
+         var head = document.getElementById("head");
+         var empty = false;
+         clearErrors();
+         
+         if(document.getElementById("firstName").value.length == 0) {
+            document.getElementById("errorFirstName").innerHTML="*";
+            empty = true;
+         }
+         if(document.getElementById("lastName").value.length == 0) {
+            document.getElementById("errorLastName").innerHTML="*";
+            empty = true;
+         }
+         if(document.getElementById("username").value.length == 0) {
+            document.getElementById("errorUsername").innerHTML="*";
+            empty = true;
+         }
+         if(document.getElementById("email").value.length == 0) {
+            document.getElementById("errorEmail").innerHTML="*";
+            empty = true;
+         }
+         if(document.getElementById("password1").value.length == 0) {
+            document.getElementById("errorPassword1").innerHTML="*";
+            empty = true;
+         }
+         if(document.getElementById("password2").value.length == 0) {
+            document.getElementById("errorPassword2").innerHTML="*";
+            empty = true;
+         }
+         if(empty) {
+            head.innerHTML = "Sign up<span class='error'><br>Fill in missing fields</span>";
+            return false;
+         }
          
          var code = validatePassword();
          if(code < 1) {
-            if(code == -1)
-               alert("Passwords don't match");
+            if(code == -3)
+               head.innerHTML = "Sign up<span class='error'><br>Passwords must be at least " + minPasswordLength + " long.</span>";
+            else if(code == -1)
+               head.innerHTML = "Sign up<span class='error'><br>Passwords don't match</span>";
             else if(code == -2)
-               alert("Password must have an uppercase");
-            else if(code == -3)
-               alert("Passwords must be at least " + minPasswordLength + " long.");
+               head.innerHTML = "Sign up<span class='error'><br>Password must have<br>an uppercase letter</span>";
             else
-               alert("Unknown error in password");
+               head.innerHTML = "Sign up<span class='error'><br>Unknown error in password</span>";
             return false;
          }
          
@@ -63,9 +156,22 @@
                      username: document.getElementById("username").value,
                      password: document.getElementById("password1").value,
                      email: document.getElementById("email").value};
-         alert(json);
+                     
+         
          $.post("/register", json, function (data, status) {
-            alert("Data: " + data + "\nStatus: " + status);
+            if(data == '1') {
+               alert("Account created!");
+               window.location = "/project2/home.html";
+            }
+            else if(data == '-1') {
+               head.innerHTML = "Sign up<span class='error'><br>Username already taken</span>";
+            }
+            else if(data == '-2') {
+               head.innerHTML = "Sign up<span class='error'><br>Email already registered</span>";
+            }
+            else {
+               alert("Got unexepected error: " + data);
+            }
          });
       }
 
@@ -88,41 +194,54 @@
          var window = document.getElementById("inner");
          if(signUp) {
             document.getElementById("outer").style.width="350px";
-            window.innerHTML =  "<form id='formSignUp' method='POST' action='/signUp'>";
-            window.innerHTML += "<header style='font-size: 20px; margin: 0px'>Sign up</header><hr>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>First name</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='firstName' name='firstName' type='text' placeholder='First name'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Last name</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='lastName' name='lastName' type='text' placeholder='Last name'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='username' name='username' type='text' placeholder='Username'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Email</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='email' name='email' type='text' placeholder='Email'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password1' name='password1' type='password' placeholder='Password'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignUp' id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
+            window.innerHTML =  "<form id='formSignUp' method='POST' action='javascript:void(0);'>";
+            window.innerHTML += "<header id='head' style='font-size: 20px; margin: 0px'>Sign up</header><hr>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>First name<span id='errorFirstName' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' id='firstName' name='firstName' type='text' placeholder='First name'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Last name<span id='errorLastName' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' id='lastName' name='lastName' type='text' placeholder='Last name'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username<span id='errorUsername' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' id='username' name='username' type='text' placeholder='Username'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Email<span id='errorEmail' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' id='email' name='email' type='text' placeholder='Email'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password<span id='errorPassword1' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' oninput='displayPasswordError()' id='password1' name='password1' type='password' placeholder='Password'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password<span id='errorPassword2' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' oninput='displayPasswordError()' id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
             window.innerHTML += "</form>";
             window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='register()'>Create account</button></header>";
             window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Already have an account?</a></header>";
+            document.getElementById('firstName').focus();
          }
          else {
             document.getElementById("outer").style.width="300px";
-            window.innerHTML =  "<form id='formSignIn' method='GET' action='/signIn'>";
-            window.innerHTML +=  "<header style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='username' name='username' type='text' placeholder='Username'></span><br>";
-            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password</header></span>";
-            window.innerHTML += "<span class='loginRight'><input form='formSignIn' id='password' name='password' type='password' placeholder='Password'></span><br>";
+            window.innerHTML =  "<form id='formSignIn' method='GET' action='javascript:void(0);'>";
+            window.innerHTML +=  "<header id='head' style='font-size: 20px; margin: 0px'>Sign in</header><hr>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Username<span id='errorUsername' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignIn' id='username' name='username' type='text' placeholder='Username'></span><br>";
+            window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password<span id='errorPassword' class='error'></span></header></span>";
+            window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignIn' id='password' name='password' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "</form>";
             window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='signIn()'>Login</button></header>";
             window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Don't have an account?</a></header>";
+            document.getElementById('username').focus();
          }
       }
       
       function changeWindow() {
          signUp = !signUp;
          drawWindow();
+      }
+      
+      function keyPress() {
+         clearErrors();
+         var x = event.code;
+         if(x == "Enter") {
+            if(signUp)
+               register();
+            else
+               signIn();
+         }
       }
    </script>
    

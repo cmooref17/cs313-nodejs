@@ -71,14 +71,14 @@ div.loginInner {
 
 .loginLeft {
    display: inline-block;
-   width: 45%;
+   width: 50%;
    margin-right: 4px;
    margin-bottom: 4px;
 }
 
 .loginRight {
    display: inline-block;
-   width: 50%;
+   width: 45%;
    margin-left: 4px;
    margin-bottom: 4px;
 }
@@ -99,4 +99,10 @@ div.loginInner {
 .switchWindow > a {
    font-family: times;
    color: blue;
+}
+
+span.error {
+   font-style: italic;
+   color: red;
+   font-size: 16px;
 }
