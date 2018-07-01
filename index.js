@@ -12,9 +12,10 @@ function canRedeemGift(giftDate) {
 
 function getSession(req, res) {
    console.log("User session: " + req.session.username);
-   if (!req.session || !req.session.username) // Check if session exists
+   if (!req.session || !req.session.username || req.session == undefined || req.session.username == undefined || req.session == 'undefined' || req.session.username == 'undefined' || req.session == null || req.session.username == null) {// Check if session exists
+      console.log('ending');
       res.end('-1');
-   
+   }
    var query = 'SELECT * FROM "user" WHERE username=$1';
    var params = [ req.session.username ];
    
@@ -24,6 +25,7 @@ function getSession(req, res) {
          console.log(err);
          res.end(err);
       }
+      console.log(req.session.username);
       console.log(data.rows[0].gift_date);
       var canRedeem = canRedeemGift(data.rows[0].gift_date);
       
