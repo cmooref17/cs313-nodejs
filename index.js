@@ -4,18 +4,29 @@ function getDate() {
    return today;
 }
 
+function redeemGift(req, res) {
+   
+}
+
 function canRedeemGift(giftDate) {
    var currentDate = getDate();
-   console.log(giftDate);
-   console.log(currentDate);
+   console.log("Today: " + currentDate);
+   console.log("Redeem date: " + giftDate);
+   
+   console.log(currentDate >= giftDate);
+   
+   if(currentDate >= giftDate)
+      return "true";
+   return "false";
 }
 
 function getSession(req, res) {
    console.log("User session: " + req.session.username);
-   if (!req.session || !req.session.username || req.session == undefined || req.session.username == undefined || req.session == 'undefined' || req.session.username == 'undefined' || req.session == null || req.session.username == null) {// Check if session exists
-      console.log('ending');
+   if (!req.session || !req.session.username || req.session == null || req.session.username == null) {// Check if session exists
       res.end('-1');
+      return false;
    }
+   
    var query = 'SELECT * FROM "user" WHERE username=$1';
    var params = [ req.session.username ];
    
@@ -24,9 +35,15 @@ function getSession(req, res) {
       if(err) {
          console.log(err);
          res.end(err);
+         return 0;
+      }
+      if(!data.rows[0]) {
+         console.log("user doesn't exist!");
+         res.end('-1');
+         req.session.username = null;
+         return 0;
       }
       console.log(req.session.username);
-      console.log(data.rows[0].gift_date);
       var canRedeem = canRedeemGift(data.rows[0].gift_date);
       
       json = {id: data.id,
@@ -35,8 +52,10 @@ function getSession(req, res) {
               username: data.rows[0].username,
               email: data.rows[0].email,
               bells: data.rows[0].bells,
-              gift_date: data.rows[0].gift_date };
+              giftDate: data.rows[0].gift_date,
+              canRedeem: canRedeem};
       res.json(json);
+      return json;
    });
 }
 
@@ -60,6 +79,7 @@ function login(req, res) {
       if(err) {
          console.log(err);
          res.end(err);
+         return 0;
       }
       const user = result.rows[0];
       
@@ -115,9 +135,9 @@ function register(req, res) {
          } else {
             console.log("Email doesn't exist! Good"); //Good
          }
-      
+         var date = getDate();
          var query2 = 'INSERT INTO "user" (first_name, last_name, username, password, email, gift_date) VALUES($1, $2, $3, $4, $5, $6)';
-         var params2 = [firstName, lastName, username, hashedPassword, email, new Date()];
+         var params2 = [firstName, lastName, username, hashedPassword, email, date];
          pool.query(query2, params2, (err, result) => {
             if(err) {
                console.error(err);
