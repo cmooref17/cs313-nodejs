@@ -1,18 +1,33 @@
 
-function getSession() {
-   if (req.session && req.session.user) // Check if session exists
-      res.end(req.session.user);
-   else
+function getSession(req, res) {
+   console.log("User session: " + req.session.username);
+   if (!req.session || !req.session.username) // Check if session exists
       res.end('-1');
+   
+   var query = 'SELECT * FROM "user" WHERE username=$1';
+   var params = [ req.session.username ];
+   
+   var json;
+   pool.query(query, params, (err, data) => {
+      if(err) {
+         console.log(err);
+         res.end(err);
+      }
+      json = {id: data.id,
+              firstName: data.rows[0].first_name,
+              lastName: data.rows[0].last_name,
+              username: data.rows[0].username,
+              email: data.rows[0].email,
+              bells: data.rows[0].bells,
+              gift_date: data.rows[0].gift_date };
+      
+      console.log(json);
+      res.json(json);
+   });
 }
 
-function logUserIn(username) {
-   app.use(session({
-      cookieName: 'session',
-      secret: 'random_string_goes_here',
-      duration: 30 * 60 * 1000,
-      activeDuration: 5 * 60 * 1000,
-   }));
+function getPresent(req, res) {
+   
 }
 
 function login(req, res) {
@@ -36,7 +51,7 @@ function login(req, res) {
       
       if(passwordHash.verify(password, user.password)) {
          console.log("Correct password. Logging in");
-         logUserIn(username);
+         req.session.username = username;
          res.end('1');
       }
       else {
@@ -96,7 +111,7 @@ function register(req, res) {
             }
             else {
                console.error("No errors adding user to db");
-               logUserIn(username);
+               req.session.username = username;
                res.end('1');
             }
             //db.end();
@@ -109,8 +124,7 @@ const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 //const pg = require('pg');
-const connectionString = process.env.DATABASE_URL || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@ec2-54-83-0-158.compute-1.amazonaws.com:5432/d1lvra62cii5am?ssl=true' || 
-'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am?ssl=true';
+const connectionString = process.env.DATABASE_URL ||  'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am?ssl=true' || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@ec2-54-83-0-158.compute-1.amazonaws.com:5432/d1lvra62cii5am?ssl=true';
 
 const { Pool } = require('pg');
 const passwordHash = require('password-hash');
@@ -122,6 +136,12 @@ express()
    .use(express.json())
    .use(express.urlencoded({extended:true}))
    .use(express.static(path.join(__dirname, 'public')))
+   .use(session({
+      cookieName: 'session',
+      secret: 'random_string_goes_here',
+      duration: 30 * 60 * 1000,
+      activeDuration: 5 * 60 * 1000,
+   }))
    .set('views', path.join(__dirname, 'views'))
    .set('view engine', 'ejs')
    .get('/', (req, res) => res.render('pages/index'))

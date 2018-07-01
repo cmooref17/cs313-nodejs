@@ -22,29 +22,38 @@
       function drawHeader() {
          var user;
          var right = document.getElementById("rightSign");
-         right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
+         
          $.get("/getSession", function(data, status) {
-            if(data) == '-1')
-               alert(data);
-            else
-               alert(data);
-               //right.innerHTML = "<header class='promptLogin'>Welcome <br>" + user + "!</header>";
+            console.log(data);
+            if(data == '-1') {
+               right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
+            }
+            else {
+               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br>" + data.bells + " bells</header>";
+            }
          });
       }
       
       function loadGifts() {
          var load = false;
          var gifts = document.getElementById("gifts");
-         if(load) {
-            gifts.innerHTML = "<header>Your free gifts for today!</header><hr style='margin-left: 16px; margin-right: 16px'><br>";
-            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-            gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span><br>";
-         }
-         else {
-            gifts.innerHTML = "<header>You are not logged in</header><br>";
-         }
+         $.get("/getSession", function(data, status) {
+            if(data == '-1') {
+               gifts.innerHTML = "<header>You are not logged in</header><br>";
+            }
+            else {
+               if(data.gift_date) {
+                  gifts.innerHTML = "<header>Your free gifts for today!</header><hr style='margin-left: 16px; margin-right: 16px'><br>";
+                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
+                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span><br>";
+               }
+               else {
+                  gifts.innerHTML = "<header>You are out of daily gifts</header><br>";
+               }
+            }
+         });
       }
   
    </script>
@@ -58,7 +67,7 @@
          <header class="leftSignText">Trading<br>Outpost</header>
       </div>
       <div id="rightSign" class="rightSign">
-         <header class="promptLogin">You are not logged in<br><a href="login.html" class="promptLogin" style="color: white">Login</a></header>
+         
    </div></div>
    
    <script type="text/javascript">

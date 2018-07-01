@@ -91,7 +91,6 @@
       
          $.get("/signIn?username=" + username + "&password=" + password, function(data, status){
             if(data == '1') {
-               alert("Login successful");
                window.location = "/project2/home.html";
             }
             else if(data == '-1') {
@@ -160,7 +159,6 @@
          
          $.post("/register", json, function (data, status) {
             if(data == '1') {
-               alert("Account created!");
                window.location = "/project2/home.html";
             }
             else if(data == '-1') {

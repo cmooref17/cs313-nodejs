@@ -91,6 +91,11 @@ header.leftSignText {
    text-decoration: none;
 }
 
+.welcome {
+   color: white;
+   font-size: 22px;
+}
+
 div.gifts {
    display: inline-block;
    margin: auto;
