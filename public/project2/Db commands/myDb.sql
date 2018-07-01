@@ -7,7 +7,7 @@ CREATE TABLE "user"
    username VARCHAR(100) UNIQUE NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
    bells INT DEFAULT(100),
-   gift_date date DEFAULT(DATETIME + INTERVAL '1 day')
+   gift_date date
 );
 
 CREATE TABLE item

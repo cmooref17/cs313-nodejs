@@ -29,17 +29,19 @@
          }
          else if(password1.length < minPasswordLength || password2.length < minPasswordLength) {
             error = true;
-            setTimeout(function() { if(error) head.innerHTML = "Sign up<span class='error'><br>Passwords must be at least " + minPasswordLength + " long.</span>"; }, 1000);
-            if(password1.length < minPasswordLength)
-               document.getElementById("errorPassword1").innerHTML="*";
-            if(password2.length < minPasswordLength)
-               document.getElementById("errorPassword2").innerHTML="*";
+            setTimeout(function() { if(error) {head.innerHTML = "Sign up<span class='error'><br>Passwords must be at least " + minPasswordLength + " long.</span>"; 
+                                 if(password1.length < minPasswordLength)
+                                    document.getElementById("errorPassword1").innerHTML="*";
+                                 if(password2.length < minPasswordLength)
+                                    document.getElementById("errorPassword2").innerHTML="*"; }}, 1000);
+            
          }
          else if(password1 != password2) {
             error = true;
-            setTimeout(function() { if(error) head.innerHTML = "Sign up<span class='error'><br>Passwords don't match</span>"; }, 1000);
-            document.getElementById("errorPassword1").innerHTML="*";
-            document.getElementById("errorPassword2").innerHTML="*";
+            setTimeout(function() { if(error) { head.innerHTML = "Sign up<span class='error'><br>Passwords don't match</span>"; 
+                                       document.getElementById("errorPassword1").innerHTML="*";
+                                       document.getElementById("errorPassword2").innerHTML="*";}}, 1000);
+            
          }
          else {
             head.innerHTML = "Sign up<span class='error'><br>Unexpected error</span>";

@@ -1,3 +1,14 @@
+function getDate() {
+   var today = new Date();
+  
+   return today;
+}
+
+function canRedeemGift(giftDate) {
+   var currentDate = getDate();
+   console.log(giftDate);
+   console.log(currentDate);
+}
 
 function getSession(req, res) {
    console.log("User session: " + req.session.username);
@@ -13,6 +24,9 @@ function getSession(req, res) {
          console.log(err);
          res.end(err);
       }
+      console.log(data.rows[0].gift_date);
+      var canRedeem = canRedeemGift(data.rows[0].gift_date);
+      
       json = {id: data.id,
               firstName: data.rows[0].first_name,
               lastName: data.rows[0].last_name,
@@ -20,8 +34,6 @@ function getSession(req, res) {
               email: data.rows[0].email,
               bells: data.rows[0].bells,
               gift_date: data.rows[0].gift_date };
-      
-      console.log(json);
       res.json(json);
    });
 }
@@ -49,7 +61,7 @@ function login(req, res) {
       }
       const user = result.rows[0];
       
-      if(passwordHash.verify(password, user.password)) {
+      if(user && passwordHash.verify(password, user.password)) {
          console.log("Correct password. Logging in");
          req.session.username = username;
          res.end('1');
@@ -102,8 +114,8 @@ function register(req, res) {
             console.log("Email doesn't exist! Good"); //Good
          }
       
-         var query2 = 'INSERT INTO "user" (first_name, last_name, username, password, email) VALUES($1, $2, $3, $4, $5)';
-         var params2 = [firstName, lastName, username, hashedPassword, email];
+         var query2 = 'INSERT INTO "user" (first_name, last_name, username, password, email, gift_date) VALUES($1, $2, $3, $4, $5, $6)';
+         var params2 = [firstName, lastName, username, hashedPassword, email, new Date()];
          pool.query(query2, params2, (err, result) => {
             if(err) {
                console.error(err);
@@ -124,7 +136,8 @@ const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
 //const pg = require('pg');
-const connectionString = process.env.DATABASE_URL ||  'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am?ssl=true' || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@ec2-54-83-0-158.compute-1.amazonaws.com:5432/d1lvra62cii5am?ssl=true';
+const connectionString = process.env.DATABASE_URL || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@ec2-54-83-0-158.compute-1.amazonaws.com:5432/d1lvra62cii5am?ssl=true' || 
+'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am?ssl=true';
 
 const { Pool } = require('pg');
 const passwordHash = require('password-hash');
@@ -147,6 +160,7 @@ express()
    .get('/', (req, res) => res.render('pages/index'))
    .get('/signIn', login)
    .get('/getSession', getSession)
+   .get('/getDate', getDate)
    .post('/register', register)
    .listen(PORT, function() { console.log('Listening on ' + PORT);});
 
