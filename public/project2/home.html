@@ -25,11 +25,11 @@
          console.log("Gift number: " + giftNumber);
          var json = {giftNumber: giftNumber,
                      numGifts: data.numGifts};
-         $.post("/redeem", json, function(data, status) {
-            if(data != '-1' && data != '-2') {
-               console.log(data);
+         $.post("/redeem", json, function(data1, status) {
+            if(data1 != '-1' && data1 != '-2') {
+               console.log(data1);
                document.getElementById("gift" + giftNumber).remove();
-               if(data.numGifts == 0)
+               if(data1.numGifts == 0)
                   document.getElementById("giftStatus").innerHTML = "You are out of daily gifts";
             }
          });

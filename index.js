@@ -58,42 +58,23 @@ function getUser(username, callback) {
          return '-2';
       }
       
-      canResetGifts(data.rows[0].gift_date, (valid0) => {
-         if(valid0 == true) {
-            resetGifts(username, (valid) => {
-                  var json = {id: data.rows[0].id,
-                     firstName: data.rows[0].first_name,
-                     lastName: data.rows[0].last_name,
-                     username: data.rows[0].username,
-                     email: data.rows[0].email,
-                     bells: data.rows[0].bells,
-                     giftDate: data.rows[0].gift_date,
-                     numGifts: data.rows[0].num_gifts,
-                     item0: data.rows[0].gift_0,
-                     item1: data.rows[0].gift_1,
-                     item2: data.rows[0].gift_2,
-                     item3: data.rows[0].gift_3};
-                  callback(json);
-                  return json;
-            });
-         }
-         else {
-            var json = {id: data.rows[0].id,
-               firstName: data.rows[0].first_name,
-               lastName: data.rows[0].last_name,
-               username: data.rows[0].username,
-               email: data.rows[0].email,
-               bells: data.rows[0].bells,
-               giftDate: data.rows[0].gift_date,
-               numGifts: data.rows[0].num_gifts,
-               item0: data.rows[0].gift_0,
-               item1: data.rows[0].gift_1,
-               item2: data.rows[0].gift_2,
-               item3: data.rows[0].gift_3};
-            callback(json);
-            return json;
-         }
-      });
+		pool.query(query, params, (err, data) => {
+			
+			var json = {id: data.rows[0].id,
+							firstName: data.rows[0].first_name,
+							lastName: data.rows[0].last_name,
+							username: data.rows[0].username,
+							email: data.rows[0].email,
+							bells: data.rows[0].bells,
+							giftDate: data.rows[0].gift_date,
+							numGifts: data.rows[0].num_gifts,
+							item0: data.rows[0].gift_0,
+							item1: data.rows[0].gift_1,
+							item2: data.rows[0].gift_2,
+							item3: data.rows[0].gift_3};
+			callback(json);
+			return json;
+		});
    });
 }
 
@@ -352,8 +333,18 @@ function getSession(req, res) {
          return '-2';
       }
       else {
-         res.json(returnValue);
-         return returnValue;
+			canResetGifts(req.session.username, (valid) => {
+				if(valid) {
+					getUser(req.session.username, (returnValue2) => {
+						res.json(returnValue2);
+						return returnValue2;
+					});
+				}
+				else {
+					res.json(returnValue);
+					return returnValue;
+				}
+			});
       }
    });
 }
@@ -391,8 +382,6 @@ function register(req, res) {
    var username = req.body.username;
    var password = req.body.password;
    var email = req.body.email;
-   
-   
    
    console.log("Password: " + password);
    var hashedPassword = passwordHash.generate(password);
