@@ -72,9 +72,10 @@
                } else {
                   giftDiv.innerHTML = "<header style='text-align: center; font-style: 25px; color: yellow'>" + data.name + "</header>";
                   giftDiv.innerHTML += "<img class='giftImg' src='" + data.imgUrl + "'><br>";
-                  giftDiv.innerHTML += "<header>Set: <span style='position: absolute; right:16px'>" + data.set + "</span></header>";
-                  giftDiv.innerHTML += "<header>Buy price: <span style='position: absolute; right:16px'>" + data.buyPrice + " bells</span></header>";
-                  giftDiv.innerHTML += "<header>Sell price: <span style='position: absolute; right:16px'>" + data.sellPrice + " bells</span></header>";
+                  if(data.set != undefined && data.set != 'null' && data.set != null)
+                     giftDiv.innerHTML += "<header style='font-weight: bold'>Set: <span style='position: absolute; right:16px; font-weight: none'>" + data.set + "</span></header>";
+                  giftDiv.innerHTML += "<header style='font-weight: bold'>Buy price: <span style='position: absolute; right:16px; font-weight: none'>" + data.buyPrice + " bells</span></header>";
+                  giftDiv.innerHTML += "<header style='font-weight: bold'>Sell price: <span style='position: absolute; right:16px; font-weight: none'>" + data.sellPrice + " bells</span></header>";
                   giftDiv.innerHTML += "<button type='button' class='redeem' id='" + numGift + "' onclick='redeemGift(this)'>Redeem item</button>";
                }
             }
