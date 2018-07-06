@@ -134,6 +134,7 @@ div.outerGifts {
 }
 
 div.gift {
+   position: relative;
    font-size: 14px;
    margin: 4px;
    padding: 4px;
@@ -143,6 +144,7 @@ div.gift {
    max-height: 225px;
    border-radius: 8px;
    display: inline-block;
+   vertical-align: top;
 }
 
 img.giftImg {
@@ -154,16 +156,28 @@ img.giftImg {
    
 }
 
-.giftName {
+div.gift > header {
+   font-size: 14px;
+   margin-top: 4px;
+   margin-bottom: 4px;
+   width: 100%;
+   position: relative;
+   text-align: left;
    font-family: courier;
 }
 
-a.redeem {
-   text-decoration: none;
-   color: yellow;
+.redeem {
+   text-align: center;
+   width: 75%;
+   position: absolute;
+   bottom: 0;
+   left: 12.5%;
+   margin: auto;
+   margin-bottom: 8px;
+   color: black;
    font-family: courier;
 }
 
-a.redeem:hover {
+.redeem:hover {
    color: white;
 }

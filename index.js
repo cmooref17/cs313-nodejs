@@ -59,40 +59,42 @@ function getUser(username, callback) {
       }
       
       canResetGifts(data.rows[0].gift_date, (valid0) => {
-         resetGifts(username, (valid) => {
-            if(valid) {
-               var json = {id: data.rows[0].id,
-                  firstName: data.rows[0].first_name,
-                  lastName: data.rows[0].last_name,
-                  username: data.rows[0].username,
-                  email: data.rows[0].email,
-                  bells: data.rows[0].bells,
-                  giftDate: data.rows[0].gift_date,
-                  numGifts: data.rows[0].num_gifts,
-                  item0: data.rows[0].gift_0,
-                  item1: data.rows[0].gift_1,
-                  item2: data.rows[0].gift_2,
-                  item3: data.rows[0].gift_3};
-               callback(json);
-               return json;
-            }
-            else {
-               var json = {id: data.rows[0].id,
-                  firstName: data.rows[0].first_name,
-                  lastName: data.rows[0].last_name,
-                  username: data.rows[0].username,
-                  email: data.rows[0].email,
-                  bells: data.rows[0].bells,
-                  giftDate: data.rows[0].gift_date,
-                  numGifts: data.rows[0].num_gifts,
-                  item0: data.rows[0].gift_0,
-                  item1: data.rows[0].gift_1,
-                  item2: data.rows[0].gift_2,
-                  item3: data.rows[0].gift_3};
-               callback(json);
-               return json;
-            }
-         });
+         if(valid0) {
+            resetGifts(username, (valid) => {
+               if(valid) {
+                  var json = {id: data.rows[0].id,
+                     firstName: data.rows[0].first_name,
+                     lastName: data.rows[0].last_name,
+                     username: data.rows[0].username,
+                     email: data.rows[0].email,
+                     bells: data.rows[0].bells,
+                     giftDate: data.rows[0].gift_date,
+                     numGifts: data.rows[0].num_gifts,
+                     item0: data.rows[0].gift_0,
+                     item1: data.rows[0].gift_1,
+                     item2: data.rows[0].gift_2,
+                     item3: data.rows[0].gift_3};
+                  callback(json);
+                  return json;
+               }
+               else {
+                  var json = {id: data.rows[0].id,
+                     firstName: data.rows[0].first_name,
+                     lastName: data.rows[0].last_name,
+                     username: data.rows[0].username,
+                     email: data.rows[0].email,
+                     bells: data.rows[0].bells,
+                     giftDate: data.rows[0].gift_date,
+                     numGifts: data.rows[0].num_gifts,
+                     item0: data.rows[0].gift_0,
+                     item1: data.rows[0].gift_1,
+                     item2: data.rows[0].gift_2,
+                     item3: data.rows[0].gift_3};
+                  callback(json);
+                  return json;
+               }
+            });
+         }
       });
    });
 }

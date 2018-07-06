@@ -62,11 +62,21 @@
                   color = "orange";
                   rarity = "ultra rare";
                }
-               console.log(rarity + " " + color);
                gifts.innerHTML += "<div style='background-color: " + color + "' id='gift" + numGift + "' class='gift'></div>";
                var giftDiv = document.getElementById('gift' + numGift);
-               giftDiv.innerHTML = "<img class='giftImg' src='" + data.imgUrl + "'><br>";
-               giftDiv.innerHTML += "<a class='redeem' id='" + numGift + "' href='javascript:void(0);' onclick='redeemGift(this)'>Redeem</a>";
+               
+               if(data.set == null) {//bells
+                  giftDiv.innerHTML = "<header style='text-align: center; font-style: 25px; color: yellow'>" + data.name + "</header>";
+                  giftDiv.innerHTML += "<img class='giftImg' style='width: 75%; height: 75%' src='" + data.imgUrl + "'><br>";
+                  giftDiv.innerHTML += "<button type='button' class='redeem' id='" + numGift + "' onclick='redeemGift(this)'>Redeem " + data.sellPrice + " bells</button>";
+               } else {
+                  giftDiv.innerHTML = "<header style='text-align: center; font-style: 25px; color: yellow'>" + data.name + "</header>";
+                  giftDiv.innerHTML += "<img class='giftImg' src='" + data.imgUrl + "'><br>";
+                  giftDiv.innerHTML += "<header>Set: <span style='position: absolute; right:16px'>" + data.set + "</span></header>";
+                  giftDiv.innerHTML += "<header>Buy price: <span style='position: absolute; right:16px'>" + data.buyPrice + " bells</span></header>";
+                  giftDiv.innerHTML += "<header>Sell price: <span style='position: absolute; right:16px'>" + data.sellPrice + " bells</span></header>";
+                  giftDiv.innerHTML += "<button type='button' class='redeem' id='" + numGift + "' onclick='redeemGift(this)'>Redeem item</button>";
+               }
             }
          });
       }
