@@ -7,8 +7,19 @@ CREATE TABLE "user"
    username VARCHAR(100) UNIQUE NOT NULL,
    email VARCHAR(100) UNIQUE NOT NULL,
    bells INT DEFAULT(100),
-   gift_date date
+   gift_date DATE,
+   num_gifts INT DEFAULT(4),
+   gift_0 INT DEFAULT(-1) REFERENCES item(id),
+   gift_1 INT DEFAULT(-1) REFERENCES item(id),
+   gift_2 INT DEFAULT(-1) REFERENCES item(id),
+   gift_3 INT DEFAULT(-1) REFERENCES item(id)
 );
+
+ALTER TABLE "user" ADD gift_0 INT DEFAULT(-1) REFERENCES item(id);
+
+ALTER TABLE "user" ADD num_gifts INT DEFAULT(4);
+
+UPDATE item SET rarity = 1 WHERE buy_price >= 12150;
 
 CREATE TABLE item
 (
@@ -20,11 +31,13 @@ CREATE TABLE item
    img_url VARCHAR(1000) NOT NULL
 );
 
+ALTER TABLE item ADD rarity INT DEFAULT(0);
+
 CREATE TABLE inventory
 (
    id SERIAL PRIMARY KEY,
+   owner VARCHAR(100) NOT NULL REFERENCES "user"(username),
    item_id INT NOT NULL REFERENCES item(id),
-   owner_id INT NOT NULL REFERENCES "user"(id),
    count INT default(1)
 );
 

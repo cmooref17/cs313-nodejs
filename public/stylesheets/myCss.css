@@ -113,25 +113,57 @@ header.leftSignText {
    font-size: 22px;
 }
 
-div.gifts {
-   display: inline-block;
-   margin: auto;
-   padding: 0px;
-   background-color: rgb(150, 150, 150, .25);
-   border-radius: 8px;
-}
-
-div.gifts > header {
+.giftStatus {
    font-family: polygon;
    font-size: 32px;
    padding-top: 8px;
    color: red;
 }
 
-.gift {
-   margin: 0px;
-   text-align: center;
-   width: 250px;
-   height: 250px;
+div.gifts {
+   margin: auto;
+   padding: 0px;
    display: inline-block;
+}
+
+div.outerGifts {
+   background-color: rgb(150, 150, 150, .25);
+   border-radius: 8px;
+   max-width: 1000px;
+   margin: auto;
+}
+
+div.gift {
+   font-size: 14px;
+   margin: 4px;
+   padding: 4px;
+   width: 225px;
+   height: 225px;
+   max-width: 225px;
+   max-height: 225px;
+   border-radius: 8px;
+   display: inline-block;
+}
+
+img.giftImg {
+   border-radius: 6px;
+   height: 40%;
+   width: 40%;
+   margin: 0px;
+   padding: 0px;
+   
+}
+
+.giftName {
+   font-family: courier;
+}
+
+a.redeem {
+   text-decoration: none;
+   color: yellow;
+   font-family: courier;
+}
+
+a.redeem:hover {
+   color: white;
 }

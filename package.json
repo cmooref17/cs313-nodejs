@@ -14,9 +14,13 @@
     "client-sessions": "^0.8.0",
     "ejs": "^2.5.6",
     "express": "^4.15.2",
+    "filesync": "^2.2.0",
     "jquery": "^3.3.1",
     "password-hash": "^1.2.2",
-    "pg": "^6.4.2"
+    "pg": "^6.4.2",
+    "random-item": "^1.0.0",
+    "random-number": "0.0.9",
+    "wait.for": "^0.6.6"
   },
   "devDependencies": {
     "request": "^2.81.0",

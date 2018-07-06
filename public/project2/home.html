@@ -19,28 +19,95 @@
          }
       }
       
+      function redeemGift(data) {
+         console.log("Redeeming gift");
+         var giftNumber = data.id;
+         console.log("Gift number: " + giftNumber);
+         var json = {giftNumber: giftNumber,
+                     numGifts: data.numGifts};
+         $.post("/redeem", json, function(data, status) {
+            if(data != '-1' && data != '-2') {
+               console.log(data);
+               document.getElementById("gift" + giftNumber).remove();
+               if(data.numGifts == 0)
+                  document.getElementById("giftStatus").innerHTML = "You are out of daily gifts";
+            }
+         });
+      }
+      
+      function showGift(id, numGift) {
+         giftStatus = document.getElementById("giftStatus");
+         var gifts = document.getElementById("gifts");
+         console.log("Showing item with id: " + id);
+         $.get("/getGift?id=" + id, function(data, status) {
+            if(data == '-1')
+               console.log("Bad item");
+            else {
+               console.log(data.id);
+               var color;
+               var rarity;
+               if(data.rarity == 0) {
+                  color = "green";
+                  rarity = "common";
+               }
+               else if(data.rarity == 1) {
+                  color = "blue";
+                  rarity = "uncommon";
+               }
+               else if(data.rarity == 2) {
+                  color = "purple";
+                  rarity = "rare";
+               }
+               else if(data.rarity == 3) {
+                  color = "orange";
+                  rarity = "ultra rare";
+               }
+               console.log(rarity + " " + color);
+               gifts.innerHTML += "<div style='background-color: " + color + "' id='gift" + numGift + "' class='gift'></div>";
+               var giftDiv = document.getElementById('gift' + numGift);
+               giftDiv.innerHTML = "<img class='giftImg' src='" + data.imgUrl + "'><br>";
+               giftDiv.innerHTML += "<a class='redeem' id='" + numGift + "' href='javascript:void(0);' onclick='redeemGift(this)'>Redeem</a>";
+            }
+         });
+      }
+      
       function drawPage() {
-         var user;
          var right = document.getElementById("rightSign");
+         var gifts = document.getElementById("gifts");
+         giftStatus = document.getElementById("giftStatus");
          
          $.get("/getSession", function(data, status) {
-            console.log(data);
-            if(data == '-1') {
+            if(data == '-1' || data == '-2') {
                right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
-               gifts.innerHTML = "<header>You are not logged in</header><br>";
+               giftStatus.innerHTML = "You are not logged in";
             }
             else {
                right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br>" + data.bells + " bells</header>";
                
-               if(data.canRedeem == "true") {
-                  gifts.innerHTML = "<header>Your free gifts for today!</header><hr style='margin-left: 16px; margin-right: 16px'><br>";
-                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span>";
-                  gifts.innerHTML += "<span class='gift'><a href='/gift'><img class='present' src='/images/present.png'></a></span><br>";
+               if(data.numGifts > 0) {
+                  giftStatus.innerHTML = "Your free gifts for today!<hr style='margin-left: 16px; margin-right: 16px'>";
+                  
+                  console.log(data.item0);
+                  console.log(data.item1);
+                  console.log(data.item2);
+                  console.log(data.item3);
+                  if(data.item0 != -1) {
+                     showGift(data.item0, 0);
+                  }
+                  if(data.item1 != -1) {
+                     showGift(data.item1, 1);
+                  }
+                  if(data.item2 != -1) {
+                     showGift(data.item2, 2);
+                  }
+                  if(data.item3 != -1) {
+                     showGift(data.item3, 3);
+                  }
+                  
+                  gifts.innerHTML += "<br>";
                }
                else {
-                  gifts.innerHTML = "<header>You are out of daily gifts</header><br>";
+                  giftStatus.innerHTML = "You are out of daily gifts";
                }
             }
          });
@@ -64,8 +131,8 @@
    
    
    <!-- Two divs to wrap content and center it --->
-   <div style="text-align: center"><div id="gifts" class="gifts">
-
+   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='giftStatus' id='giftStatus'></header><div id="gifts" class="gifts">
+      
    </div></div>
    
    <script type="text/javascript">
