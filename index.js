@@ -297,22 +297,26 @@ function redeemGift(req, res) {
                pool.query(query2, params2);
                pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
             }
-         });
-         if(numGifts == 4) {
-            var date = getDate();
-            date.setDate(date.getDate() + 1);
-            var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
-            var params3 = [ date, username];
-            pool.query(query3, params3);
-         }
+            
+            if(numGifts == 4) {
+               var date = getDate();
+               date.setDate(date.getDate() + 1);
+               var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
+               var params3 = [ date, username];
+               pool.query(query3, params3);
+            }
+         console.log("num gifts: " + numGifts);
          res.json({numGifts: numGifts-1});
+         });
+         
       });
    });
 }
 
 function canResetGifts(giftDate, callback) {
    var currentDate = getDate();
-   callback(giftDate == null || currentDate >= giftDate);
+   console.log(giftDate);
+   callback(giftDate == null || giftDate == 'null' || currentDate >= giftDate);
 }
 
 function getSession(req, res) {
@@ -333,12 +337,15 @@ function getSession(req, res) {
          return '-2';
       }
       else {
-			canResetGifts(req.session.username, (valid) => {
+			canResetGifts(returnValue.giftDate, (valid) => {
+            console.log("Valid: " + valid);
 				if(valid) {
-					getUser(req.session.username, (returnValue2) => {
-						res.json(returnValue2);
-						return returnValue2;
-					});
+               resetGifts(req.session.username, (valid) => {
+                  getUser(req.session.username, (returnValue2) => {
+                     res.json(returnValue2);
+                     return returnValue2;
+                  });
+               });
 				}
 				else {
 					res.json(returnValue);
