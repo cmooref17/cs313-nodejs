@@ -1,45 +1,60 @@
-function updateNewGifts(username, callback) {
-   getRandomGift(function(item_id) {
-		const query = 'UPDATE "user" SET gift_0 = $1 WHERE username=$2';
-		const params = [ item_id, username ];
-		pool.query(query, params);
-      getRandomGift(function(item_id) {
-         const query = 'UPDATE "user" SET gift_1 = $1 WHERE username=$2';
-         const params = [ item_id, username ];
+function updateNewStore(username, callback) {
+   var i;
+   var query;
+   var params;
+   
+   for(i = 0; i < 10; i++) {
+      getRandomGift(true, (i >= 8), i, function(data) {
+         query = 'UPDATE "user" SET shop_' + data.index + ' = $1 WHERE username=$2';
+         params = [ data.id, username ];
          pool.query(query, params);
-         getRandomGift(function(item_id) {
-            const query = 'UPDATE "user" SET gift_2 = $1 WHERE username=$2';
-            const params = [ item_id, username ];
-            pool.query(query, params);
-            getRandomGift(function(item_id) {
-               const query = 'UPDATE "user" SET gift_3 = $1 WHERE username=$2';
-               const params = [ item_id, username ];
-               pool.query(query, params);
-               const query0 = 'UPDATE "user" SET num_gifts = 4 WHERE username=$1'; //Set gifts count back to 4
-               const params0 = [ username ];
-               pool.query(query0, params0, (err) => {
-                  var date = getDate(); //Set new date
-                  date.setDate(date.getDate() + 1);
-                  const query1 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
-                  const params1 = [ date, username];
-                  pool.query(query1, params1, (err) => {
-                     callback(true);
-                  });
-               });
-            });
-         });
       });
-	});
+   }
+   //while(i < 10) {}
+   callback(true);
+}
+
+function updateNewGifts(username, callback) {
+   var j;
+   var query;
+   var params;
+   
+   for(j = 0; j < 4; j++) {
+      getRandomGift(false, false, j, function(data) {
+         query = 'UPDATE "user" SET gift_' + data.index + ' = $1 WHERE username=$2';
+         params = [ data.id, username ];
+         pool.query(query, params);
+      });
+   }
+   //while(j < 4){}
+   callback(true);
 }
 
 function resetGifts(username, callback) {
    console.log("Resetting gifts for: " + username);
 	updateNewGifts(username, (valid) => {
-      if(valid) {
-         callback(true);
-      }
-      else
+      if(valid == true) {
+         updateNewStore(username, (valid) => {
+            if(valid == true) {
+               pool.query('UPDATE "user" SET num_gifts=4 WHERE username=$1', [username]);
+               pool.query('UPDATE "user" SET num_shop=10 WHERE username=$1', [username]);
+               var date = getDate();
+               date.setDate(date.getDate() + 1);
+               var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
+               var params3 = [ date, username];
+               pool.query(query3, params3, (err) => {
+                  callback(true);
+                  return true;
+               });
+            } else {
+               callback(false);
+               return false;
+            }
+         });
+      } else {
          callback(false);
+         return false;
+      }
    });
 }
 
@@ -68,10 +83,22 @@ function getUser(username, callback) {
 							bells: data.rows[0].bells,
 							giftDate: data.rows[0].gift_date,
 							numGifts: data.rows[0].num_gifts,
+                     numShop: data.rows[0].num_shop,
 							item0: data.rows[0].gift_0,
 							item1: data.rows[0].gift_1,
 							item2: data.rows[0].gift_2,
-							item3: data.rows[0].gift_3};
+							item3: data.rows[0].gift_3,
+                     shop0: data.rows[0].shop_0,
+                     shop1: data.rows[0].shop_1,
+                     shop2: data.rows[0].shop_2,
+                     shop3: data.rows[0].shop_3,
+                     shop4: data.rows[0].shop_4,
+                     shop5: data.rows[0].shop_5,
+                     shop6: data.rows[0].shop_6,
+                     shop7: data.rows[0].shop_7,
+                     shop8: data.rows[0].shop_8,
+                     shop9: data.rows[0].shop_9
+                     };
 			callback(json);
 			return json;
 		});
@@ -113,7 +140,7 @@ function getDate() {
    return today;
 }
 
-function getRandomGift(callback) {
+function getRandomGift(store, rarePlus, tmp, callback) {
    var options = {
       min:  0,
       max:  100,
@@ -122,63 +149,55 @@ function getRandomGift(callback) {
    
    var value1 = rn(options); //Random number from 1-100
    var value2;
-   var common = 50;   //50% (60 total)
-   var uncommon = 80; //30% (85 total)
-   var rare = 95;     //15% (95 total)
+   var common = 65;   //60% (60 total)
+   var uncommon = 85; //20% (85 total)
+   var rare = 95;     //10% (95 total)
    var ultra = 100;   //5%  (100 total)
    var rarity;
    var type = "item";
    var item;
    
-   if(value1 <= common) { //0-60 Common
+   if(value1 <= common) { //0-65 Common
       value2 = value1 / common * 100;
       rarity = 0;
-      options = {
-         min:  0,
-         max:  1500,
-         integer: true
-      }
    }
-   else if(value1 <= uncommon) {//60-85 Uncommon 
+   else if(value1 <= uncommon) {//65-85 Uncommon 
       value2 = (value1 - common) / (uncommon - common) * 100;
       rarity = 1;
-      options = {
-         min:  0,
-         max:  2000,
-         integer: true
-      }
    }
    else if(value1 <= rare) {//85-95 Rare
       value2 = (value1 - uncommon) / (rare - uncommon) * 100;
       rarity = 2;
-      options = {
-         min:  0,
-         max:  5000,
-         integer: true
-      }
    }
    else {//95-100 Ultra rare
       value2 = (value1 - rare) / (ultra - rare) * 100;
       rarity = 3;
-      options = {
-         min:  0,
-         max:  10000,
-         integer: true
+   }
+   if(rarePlus == true) {
+      if(value1 <= 90) {
+         value2 = 90/value1*100;
+         rarity = 2;
+      }
+      else {
+         value2 = 10/(100-value1)*100;
+         rarity = 3;
       }
    }
    
+   
    if(rarity < 3) {
-      if(value2 <= 60)
+      if(value2 <= 80 || store == true) //20% for bells
          type = "item";
       else
          type = "bells";
    }
    else {
-      if(value2 <= 50)
+      if(value2 <= 75 || store == true) //75%
          type = "item";
-      else if(value2 <= 95)
+      else if(value2 <= 95) //20%
          type = "bells";
-      else type = "set";
+      else 
+         type = "set"; //5% "set"
    } 
    if(type == "bells") {
       if(rarity == 0) {
@@ -193,10 +212,13 @@ function getRandomGift(callback) {
       else {
          item = 337;
       }
-      callback(item);
+      if(store == false)
+         console.log(value1, value2);
+      callback({id: item,
+                index: tmp});
    }
    else if(type == "item" || type == "set") {
-      var query = 'SELECT id FROM item WHERE rarity=$1';
+      var query = 'SELECT id FROM item WHERE rarity=$1 AND id>=0 AND id < 334';
       var params = [ rarity ];
       
       pool.query(query, params, (err, data) => {
@@ -207,11 +229,172 @@ function getRandomGift(callback) {
          else {
             item = randomItem(data.rows);
             item = item.id;
-            console.log("Item: " + item + ", rarity: " + rarity);
-            callback(item);
+            if(store == false)
+               console.log(value1, value2);
+            callback({id: item,
+                      index: tmp});
          }
       });
    }
+}
+
+function purchaseItem(req, res) {
+   if(!req.session || !req.session.username) {
+		req.end('-1');
+		return false;
+   }
+   var username = req.session.username;
+   var id;
+	var shopNumber = req.body.shopNumber;
+   var numShop;
+   console.log("Purchasing item in shop slot: " + shopNumber + " for user: " + username);
+   pool.query('SELECT * FROM "user" WHERE username=$1', [ username ], (error, d) => {
+      if(error) {
+         res.end('-1');
+         return false;
+      }
+      
+      if(shopNumber == 0) {
+         if(d.rows[0].shop_0 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_0;
+      }
+      else if(shopNumber == 1) {
+         if(d.rows[0].shop_1 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_1;
+      }
+      else if(shopNumber == 2) {
+         if(d.rows[0].shop_2 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_2;
+      }
+      else if(shopNumber == 3) {
+         if(d.rows[0].shop_3 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_3;
+      }
+      else if(shopNumber == 4) {
+         if(d.rows[0].shop_4 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_4;
+      }
+      else if(shopNumber == 5) {
+         if(d.rows[0].shop_5 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_5;
+      }
+      else if(shopNumber == 6) {
+         if(d.rows[0].shop_6 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_6;
+      }
+      else if(shopNumber == 7) {
+         if(d.rows[0].shop_7 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_7;
+      }
+      else if(shopNumber == 8) {
+         if(d.rows[0].shop_8 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_8;
+      }
+      else if(shopNumber == 9) {
+         if(d.rows[0].shop_9 == -1) {
+            console.error("Already purchased this gift");
+            res.end('-1');
+            return false;
+         }
+         id = d.rows[0].shop_9;
+      }
+      
+      console.log("Item id: " + id);
+      var remainingBells;
+      pool.query('SELECT * FROM item WHERE id=$1', [ id ], (err, items) => {
+         if(err) {
+            res.end('-1');
+            return false;
+         }
+         remainingBells = d.rows[0].bells - items.rows[0].buy_price;
+         if(remainingBells < 0) {
+            res.end('-1');
+            return false;
+         }
+         
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [ remainingBells, username ]);
+         
+         var query = 'SELECT * FROM inventory WHERE owner=$1 and item_id=$2';
+         var params = [ username, id ];
+         
+         pool.query(query, params, (err0, data0) => {
+            if(err0) {
+               res.end('-1');
+               return false;
+            }
+            
+            pool.query('SELECT * FROM "user" WHERE username=$1', [username], (errorUser, data) => {
+               if(errorUser) {
+                  console.error("User: " + username + " doesn't exist");
+                  res.end('-1');
+                  return false;
+               }
+               numShop = data.rows[0].num_shop;
+               pool.query('UPDATE "user" SET num_shop = $1 WHERE username=$2', [ numShop-1, username ]);
+               if(!data0.rows[0]) {
+                  var query1 = 'INSERT INTO inventory (owner, item_id) VALUES($1, $2)'
+                  var params1 = [ username, id ];
+                  
+                  pool.query(query1, params1);
+                  pool.query('UPDATE "user" SET shop_' + shopNumber + ' = -1 WHERE username=$1', [ username ]);
+               }
+               else {
+                  var query2 = 'UPDATE inventory SET count = $1 WHERE owner=$2 and item_id=$3';
+                  var params2 = [ (data0.rows[0].count + 1), username, id];
+                  
+                  pool.query(query2, params2);
+                  pool.query('UPDATE "user" SET shop_' + shopNumber + ' = -1 WHERE username=$1', [ username ]);
+               }
+            });
+            if(numShop == 10) {
+               var date = getDate();
+               date.setDate(date.getDate() + 1);
+               var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
+               var params3 = [ date, username];
+               pool.query(query3, params3);
+            }
+            res.json({numShop: numShop-1,
+                      bells: remainingBells});
+         });
+      });
+   });
+
 }
 
 function redeemGift(req, res) {
@@ -229,8 +412,7 @@ function redeemGift(req, res) {
          res.end('-1');
          return false;
       }
-      
-      
+      numGifts = d.rows[0].num_gifts;
       if(giftNumber == 0) {
          if(d.rows[0].gift_0 == -1) {
             console.error("Already redeemed this gift");
@@ -266,6 +448,28 @@ function redeemGift(req, res) {
       
       console.log("Item id: " + id);
       
+      if(id == 334) {
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+2500, username]);
+         res.json({numGifts: numGifts-1,
+                   bells: d.rows[0].bells+2500});
+         return true;
+      } else if(id == 335) {
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+5000, username]);
+         res.json({numGifts: numGifts-1,
+                   bells: d.rows[0].bells+5000});
+         return true;
+      } else if(id == 336) {
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+8000, username]);
+         res.json({numGifts: numGifts-1,
+                   bells: d.rows[0].bells+8000});
+         return true;
+      } else if(id == 337) {
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+15000, username]);
+         res.json({numGifts: numGifts-1,
+                   bells: d.rows[0].bells+15000});
+         return true;
+      }
+      
       var query = 'SELECT * FROM inventory WHERE owner=$1 and item_id=$2';
       var params = [ username, id ];
       
@@ -274,49 +478,37 @@ function redeemGift(req, res) {
             res.end('-1');
             return false;
          }
-         
-         pool.query('SELECT * FROM "user" WHERE username=$1', [username], (errorUser, data) => {
-            if(errorUser) {
-               console.error("User: " + username + " doesn't exist");
-               res.end('-1');
-               return false;
-            }
-            numGifts = data.rows[0].num_gifts;
-            pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
-            if(!data0.rows[0]) {
-               var query1 = 'INSERT INTO inventory (owner, item_id) VALUES($1, $2)'
-               var params1 = [ username, id ];
-               
-               pool.query(query1, params1);
-               pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
-            }
-            else {
-               var query2 = 'UPDATE inventory SET count = $1 WHERE owner=$2 and item_id=$3';
-               var params2 = [ (data0.rows[0].count + 1), username, id];
-               
-               pool.query(query2, params2);
-               pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
-            }
+         pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
+         if(!data0.rows[0]) {
+            var query1 = 'INSERT INTO inventory (owner, item_id) VALUES($1, $2)'
+            var params1 = [ username, id ];
             
-            if(numGifts == 4) {
-               var date = getDate();
-               date.setDate(date.getDate() + 1);
-               var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
-               var params3 = [ date, username];
-               pool.query(query3, params3);
-            }
-         console.log("num gifts: " + numGifts);
-         res.json({numGifts: numGifts-1});
-         });
-         
+            pool.query(query1, params1);
+            pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
+         }
+         else {
+            var query2 = 'UPDATE inventory SET count = $1 WHERE owner=$2 and item_id=$3';
+            var params2 = [ (data0.rows[0].count + 1), username, id];
+            
+            pool.query(query2, params2);
+            pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
+         }
+         if(numGifts == 4) {
+            var date = getDate();
+            date.setDate(date.getDate() + 1);
+            var query3 = 'UPDATE "user" SET gift_date = $1 WHERE username = $2';
+            var params3 = [ date, username];
+            pool.query(query3, params3);
+         }
+         res.json({numGifts: numGifts-1,
+                   bells: d.rows[0].bells});
       });
    });
 }
 
-function canResetGifts(giftDate, callback) {
+function canResetGifts(username, giftDate, callback) {
    var currentDate = getDate();
-   console.log(giftDate);
-   callback(giftDate == null || giftDate == 'null' || currentDate >= giftDate);
+   callback(giftDate == null || giftDate == 'null' || giftDate == undefined || currentDate >= giftDate || username == 'flipf17');
 }
 
 function getSession(req, res) {
@@ -337,14 +529,15 @@ function getSession(req, res) {
          return '-2';
       }
       else {
-			canResetGifts(returnValue.giftDate, (valid) => {
-            console.log("Valid: " + valid);
-				if(valid) {
+			canResetGifts(req.session.username, returnValue.giftDate, (valid) => {
+				if(valid == true) {
                resetGifts(req.session.username, (valid) => {
-                  getUser(req.session.username, (returnValue2) => {
-                     res.json(returnValue2);
-                     return returnValue2;
-                  });
+                     if(valid) {
+                     getUser(req.session.username, (returnValue2) => {
+                        res.json(returnValue2);
+                        return returnValue2;
+                     });        
+                  }                  
                });
 				}
 				else {
@@ -464,6 +657,7 @@ express()
    .get('/getGift', getGift)
    .post('/register', register)
    .post('/redeem', redeemGift)
+   .post('/purchase', purchaseItem)
    .listen(PORT, function() { console.log('Listening on ' + PORT);});
 
   

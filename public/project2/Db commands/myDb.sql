@@ -12,8 +12,30 @@ CREATE TABLE "user"
    gift_0 INT DEFAULT(-1) REFERENCES item(id),
    gift_1 INT DEFAULT(-1) REFERENCES item(id),
    gift_2 INT DEFAULT(-1) REFERENCES item(id),
-   gift_3 INT DEFAULT(-1) REFERENCES item(id)
+   gift_3 INT DEFAULT(-1) REFERENCES item(id),
+   num_shop INT DEFAULT(10),
+   shop_0 INT DEFAULT(-1) REFERENCES item(id),
+   shop_1 INT DEFAULT(-1) REFERENCES item(id),
+   shop_2 INT DEFAULT(-1) REFERENCES item(id),
+   shop_3 INT DEFAULT(-1) REFERENCES item(id),
+   shop_4 INT DEFAULT(-1) REFERENCES item(id),
+   shop_5 INT DEFAULT(-1) REFERENCES item(id),
+   shop_6 INT DEFAULT(-1) REFERENCES item(id),
+   shop_7 INT DEFAULT(-1) REFERENCES item(id),
+   shop_8 INT DEFAULT(-1) REFERENCES item(id),
+   shop_9 INT DEFAULT(-1) REFERENCES item(id)
 );
+ALTER TABLE "user" ADD num_shop INT DEFAULT(10);
+ALTER TABLE "user" ADD shop_0 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_1 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_2 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_3 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_4 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_5 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_6 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_7 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_8 INT DEFAULT(-1) REFERENCES item(id);
+ALTER TABLE "user" ADD shop_9 INT DEFAULT(-1) REFERENCES item(id);
 
 ALTER TABLE "user" ADD gift_0 INT DEFAULT(-1) REFERENCES item(id);
 

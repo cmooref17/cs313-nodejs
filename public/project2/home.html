@@ -19,17 +19,34 @@
          }
       }
       
+      function purchase(data) {
+         console.log("Purchasing gift");
+         var shopNumber = data.id;
+         console.log("Gift number: " + shopNumber);
+         var json = {shopNumber: shopNumber};
+         $.post("/purchase", json, function(data1, status) {
+            console.log(data1);
+            if(data1 != '-1' && data1 != '-2') {
+               document.getElementById("userBells").innerHTML = data1.bells;
+               document.getElementById("shopItem" + shopNumber).remove();
+               console.log("num shop items: " + data1.numShop);
+               if(data1.numGifts == 0)
+                  document.getElementById("shopStatus").innerHTML = "You bought out the store. Wow.";
+            }
+         });
+      }
+      
       function redeemGift(data) {
          console.log("Redeeming gift");
          var giftNumber = data.id;
          console.log("Gift number: " + giftNumber);
-         var json = {giftNumber: giftNumber,
-                     numGifts: data.numGifts};
+         var json = {giftNumber: giftNumber};
          $.post("/redeem", json, function(data1, status) {
             if(data1 != '-1' && data1 != '-2') {
                console.log(data1);
                document.getElementById("gift" + giftNumber).remove();
                console.log("num gifts: " + data1.numGifts);
+               document.getElementById('userBells').innerHTML = data1.bells;
                if(data1.numGifts == 0)
                   document.getElementById("giftStatus").innerHTML = "You are out of daily gifts";
             }
@@ -83,21 +100,64 @@
          });
       }
       
+      function showShopItem(id, numShop) {
+         giftStatus = document.getElementById("shopStatus");
+         var gifts = document.getElementById("shopItems");
+         console.log("Showing item with id: " + id);
+         $.get("/getGift?id=" + id, function(data, status) {
+            if(data == '-1')
+               console.log("Bad item");
+            else {
+               console.log(data.id);
+               var color;
+               var rarity;
+               if(data.rarity == 0) {
+                  color = "green";
+                  rarity = "common";
+               }
+               else if(data.rarity == 1) {
+                  color = "blue";
+                  rarity = "uncommon";
+               }
+               else if(data.rarity == 2) {
+                  color = "purple";
+                  rarity = "rare";
+               }
+               else if(data.rarity == 3) {
+                  color = "orange";
+                  rarity = "ultra rare";
+               }
+               gifts.innerHTML += "<div style='background-color: " + color + "' id='shopItem" + numShop + "' class='gift'></div>";
+               var shopItemDiv = document.getElementById('shopItem' + numShop);
+               
+               shopItemDiv.innerHTML = "<header style='text-align: center; font-style: 25px; color: yellow'>" + data.name + "</header>";
+               shopItemDiv.innerHTML += "<img class='giftImg' src='" + data.imgUrl + "'><br>";
+               if(data.set != undefined && data.set != 'null' && data.set != null)
+                  shopItemDiv.innerHTML += "<header style='font-weight: bold'>Set: <span style='position: absolute; right:16px; font-weight: none'>" + data.set + "</span></header>";
+               shopItemDiv.innerHTML += "<button type='button' class='redeem' id='" + numShop + "' onclick='purchase(this)'>Purchase item for " + data.buyPrice + " bells</button>";
+            
+            }
+         });
+      }
+      
       function drawPage() {
          var right = document.getElementById("rightSign");
          var gifts = document.getElementById("gifts");
-         giftStatus = document.getElementById("giftStatus");
+         var giftStatus = document.getElementById("giftStatus");
+         var shopStatus = document.getElementById("shopStatus");
          
          $.get("/getSession", function(data, status) {
             if(data == '-1' || data == '-2') {
                right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
-               giftStatus.innerHTML = "You are not logged in";
+               giftStatus.innerHTML = "Log in to view your daily gifts";
+               shopStatus.innerHTML = "Log in to view your daily store items";
             }
             else {
-               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br>" + data.bells + " bells</header>";
+               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><span id='userBells'>" + data.bells + "</span> bells</header>";
                
                if(data.numGifts > 0) {
                   giftStatus.innerHTML = "Your free gifts for today!<hr style='margin-left: 16px; margin-right: 16px'>";
+                  shopStatus.innerHTML = "Daily shop items<hr style='margin-left: 16px; margin-right: 16px'>"
                   
                   console.log(data.item0);
                   console.log(data.item1);
@@ -114,6 +174,36 @@
                   }
                   if(data.item3 != -1) {
                      showGift(data.item3, 3);
+                  }
+                  if(data.shop0 != -1) {
+                     showShopItem(data.shop0, 0);
+                  }
+                  if(data.shop1 != -1) {
+                     showShopItem(data.shop1, 1);
+                  }
+                  if(data.shop2 != -1) {
+                     showShopItem(data.shop2, 2);
+                  }
+                  if(data.shop3 != -1) {
+                     showShopItem(data.shop3, 3);
+                  }
+                  if(data.shop4 != -1) {
+                     showShopItem(data.shop4, 4);
+                  }
+                  if(data.shop5 != -1) {
+                     showShopItem(data.shop5, 5);
+                  }
+                  if(data.shop6 != -1) {
+                     showShopItem(data.shop6, 6);
+                  }
+                  if(data.shop7 != -1) {
+                     showShopItem(data.shop7, 7);
+                  }
+                  if(data.shop8 != -1) {
+                     showShopItem(data.shop8, 8);
+                  }
+                  if(data.shop9 != -1) {
+                     showShopItem(data.shop9, 9);
                   }
                   
                   gifts.innerHTML += "<br>";
@@ -143,7 +233,11 @@
    
    
    <!-- Two divs to wrap content and center it --->
-   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='giftStatus' id='giftStatus'></header><div id="gifts" class="gifts">
+   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='status' id='giftStatus'></header><div id="gifts" class="gifts">
+      
+   </div></div>
+   
+   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='status' id='shopStatus'></header><div id="shopItems" class="gifts">
       
    </div></div>
    
