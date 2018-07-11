@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<head>
+   <link rel="stylesheet" href="/stylesheets/myCss.css">
+   <title>Inventory</title>
+   
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+   
+   <script>
+      function signOut() {
+         $.get("/signOut", function(data, status){
+            if(data.success == true) {
+               window.location = 'home.html';
+            }
+            else if(data.success == false) {
+               console.log('Error signing out: ' + data.err);
+            }
+         });
+      }
+   
+      function setBackgroundSize() {
+         var load = true;
+         if(load) {
+            
+            var w = window.innerWidth;
+            var h = window.innerHeight;
+            var size = w + "px " + h + "px";
+            var body = document.getElementById('body');
+            body.style.backgroundSize = "cover";
+            body.style.backgroundImage = "url(/images/background.jpg)";
+         }
+      }
+      
+      function sell(item) {
+         console.log("Selling item with id: " + item.id + ". Count: " + item.value);
+         var json = {id: item.id,
+                     count: item.value};
+         $.post("/sell", json, function(data1, status) {
+            console.log("Data: " + data1);
+            if(data1.success == false) {
+               console.log("Error selling item: " + data1.err);
+            }
+            else {
+               document.getElementById("userBells").innerHTML = data1.bells;
+               
+               console.log("New number of items: " + data1.count);
+               if(data1.count < 1) {
+                  document.getElementById("item" + item.id).remove();
+                  var items = document.getElementsByClassName(data1.set);
+                  var i;
+                  for(i = 0; i < items.length; i++) {
+                     items[i].innerHTML = data1.numItemsInSet;
+                  }
+               } else {
+                  document.getElementById("item" + item.id).getElementsByTagName("header")[0].getElementsByTagName("span")[0].innerHTML = data1.count;
+               }
+               console.log("Inventory count: " + data1.inventoryCount);
+               if(data1.inventoryCount == 0) {
+                  document.getElementById("inventoryStatus").innerHTML = "Your inventory is empty";
+               }
+            }
+         });
+      }
+      
+      function showItem(item, numItem) {
+         var id = item.item_id;
+         var count = item.count;
+         
+         var inventory = document.getElementById("inventoryDiv");
+         var inventoryStatus = document.getElementById("inventoryStatus");
+         
+         $.get("/getItem?id=" + id, function(data, status) {
+            if(data.success == false)
+               console.log("Error displaying item: " + data.err);
+            else {
+               var color;
+               var rarity;
+               if(data.rarity == 0) {
+                  color = "green";
+                  rarity = "common";
+               }
+               else if(data.rarity == 1) {
+                  color = "blue";
+                  rarity = "uncommon";
+               }
+               else if(data.rarity == 2) {
+                  color = "purple";
+                  rarity = "rare";
+               }
+               else if(data.rarity == 3) {
+                  color = "orange";
+                  rarity = "ultra rare";
+               }
+               
+               inventory.innerHTML += "<div style='background-color: " + color + "' id='item" + data.id + "' class='gift'></div>";
+               var itemDiv = document.getElementById("item" + data.id);
+               itemDiv.innerHTML = "<header style='text-align: center; font-style: 25px; color: yellow'>" + data.name + " (x<span>" + count + "</span>)</header>";
+               itemDiv.innerHTML += "<img class='giftImg' src='" + data.imgUrl + "'><br>";
+               if(data.set != undefined && data.set != 'null' && data.set != null) {
+                  itemDiv.innerHTML += "<header style='font-weight: bold'>Set: <span style='position: absolute; right:16px; font-weight: none'>" + data.set + "</span></header>";
+                  itemDiv.innerHTML += "<header style='font-weight: bold'>Set completion: <span style='position: absolute; right:16px; font-weight: none'>(<span class='" + data.set + "'>" + data.numItemsInSet + "</span>/" + data.maxItemsInSet + ")</span></header>";
+               }
+               itemDiv.innerHTML += "<header style='font-weight: bold'>Buy price: <span style='position: absolute; right:16px; font-weight: none'>" + data.buyPrice + " bells</span></header>";
+               itemDiv.innerHTML += "<header style='font-weight: bold'>Sell price: <span style='position: absolute; right:16px; font-weight: none'>" + data.sellPrice + " bells</span></header>";
+               itemDiv.innerHTML += "<button type='button' class='redeem' onclick='sell(this)' id='" + data.id + "' value='" + count + "'>Sell for " + data.sellPrice + "</button>";
+            }
+         });
+      }
+      
+      function drawPage() {
+         var right = document.getElementById("rightSign");
+         var inventory = document.getElementById("inventory");
+         var inventoryStatus = document.getElementById("inventoryStatus");
+         var inventoryStatus = document.getElementById("inventoryStatus");
+         
+         $.get("/getSession", function(data, status) {
+            if(data.success == false) {
+               console.log("Error getting user session: " + data.err);
+               right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
+               inventoryStatus.innerHTML = "Log in to view your inventory";
+               document.getElementById("outerDivShop").style.backgroundColor = 'rgb: 100, 100, 100, 0';
+            }
+            else {
+               console.log("Found user session for user: " + data.username);
+               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br></header>";
+               $.get("/showInventory", function(data1, status) {
+                  if(data1.success == false) {
+                     console.log("Error grabbing items from inventory: " + data1.err);
+                     inventoryStatus.innerHTML = "Error with inventory";
+                  } else {
+                     if(data1[0]) {
+                        console.log(data1[0]);
+                        inventoryStatus.innerHTML = "Loading inventory<hr style='margin-left: 16px; margin-right: 16px'>";
+                        var i;
+                        for(i = 0; data1[i]; i++) {
+                           showItem(data1[i], i);
+                        }
+                        inventoryStatus.innerHTML = "Inventory<hr style='margin-left: 16px; margin-right: 16px'>";
+                     }
+                     else {
+                        console.log("Inventory empty");
+                        inventoryStatus.innerHTML = "Your inventory is empty";
+                     }
+                  }
+               });
+            }
+         });
+      }
+      
+  
+   </script>
+   
+</head>
+
+<body onload="setBackgroundSize()" id="body">
+
+   <div style="height: 250px"> <!-- Header --->
+      <div id="leftSign" class="leftSign">
+         <header class="leftSignText"><a class="toOutpost" href="home.html">Trading<br>Outpost</a></header>
+      </div>
+      <div id="rightSign" class="rightSign">
+         
+      </div></div>
+   
+   
+   
+   <!-- Two divs to wrap content and center it --->
+   <div id="outerDivInventory" class="outerGifts" style="text-align: center"><header class='status' id='inventoryStatus'></header><div id="inventoryDiv" class="gifts">
+      
+   </div></div>
+   
+   <script type="text/javascript">
+      drawPage();
+   </script>
+   
+</body>
+</html>

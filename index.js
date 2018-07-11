@@ -1,16 +1,212 @@
+function sellItem(req, res) {
+	if(!req.session || !req.session.username) {
+		res.json({success: false,
+					 err: 'User not logged in'});
+		return false;
+	}
+	var username = req.session.username;
+	var itemId = req.body.id;
+	var inventoryCount = 0;
+   console.log("Selling item with id: " + itemId);
+	pool.query('SELECT * FROM inventory WHERE owner=$1', [username], (err, data) => {
+		if(err) {
+			console.log(err);
+			res.json({success: false,
+						 err: err});
+			return false;
+		}
+      var i;
+      for(i = 0; i < data.rows.length; i++) {
+         inventoryCount += data.rows[i].count;
+      }
+      pool.query('SELECT * FROM inventory WHERE item_id = $1 AND owner=$2', [itemId, username], (err, data) => {
+         if(err) {
+            console.log(err);
+            callback({success: false,
+                      err: err});
+         }
+         if(!data.rows[0] || data.rows[0].count == 0) {
+            console.log("No items exist to sell");
+            res.json({success: false,
+                      err: "No items exist to sell"});
+            return false;
+         }
+         var count = data.rows[0].count;
+         var sellPrice;
+         var currentBells;
+         pool.query('UPDATE inventory SET count=$1 WHERE item_id=$2 AND owner=$3', [count-1, itemId, username], (err, data) => {
+            if(err) {
+               console.log("Error updating item count in inventory");
+               res.json({success: false,
+                         err: err });
+               return false;
+            }
+            getItemById(itemId, username, (item) => {
+               if(item.success == false) {
+                  res.json(item);
+                  return false;
+               }
+               sellPrice = item.sellPrice;
+               getUser(username, (user) => {
+                  if(user.success == false) {
+                     res.json(user);
+                     return false;
+                  }
+                  currentBells = user.bells + sellPrice;
+                  
+                  pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [currentBells, username], (err, data) => {
+                     if(err) {
+                        console.log("Error setting user's new bells balance: " + err);
+                        res.json(err);
+                        return false;
+                     }
+                     console.log("User: " + username + " successfully sold item with id: " + itemId + " for " + sellPrice + " bells. New balance: " + currentBells);
+                     count--;
+                     inventoryCount--;
+                     console.log("Count: " + count);
+                     res.json({success: true,
+                               set: item.set,
+                               numItemsInSet: item.numItemsInSet,
+                               count: count,
+                               bells: currentBells,
+                               inventoryCount: inventoryCount});
+                     return true;
+                  });
+               });
+				});
+			});
+		});
+	});
+}
+
+function getInventory(req, res) {
+   if(!req.session || !req.session.username) {
+      console.log('Not logged in');
+      res.json({success: false,
+                err: 'Not logged in'});
+      return false;
+   }
+   var username = req.session.username;
+   
+   const query = `SELECT * FROM inventory 
+                  INNER JOIN item 
+                  ON inventory.item_id = item.id 
+                  WHERE owner=$1 AND count > 0
+                  ORDER BY set, rarity ASC`;
+   const params = [ username ];
+   pool.query(query, params, (err, items) => {
+      if(err) {
+         console.log(err);
+         res.json({success: false,
+                   err: err});
+         return false;
+      }
+      res.json(items.rows);
+   });
+}
+
+function getItem(req, res) {
+   var id = req.query.id;
+   var username;
+   if(!req.session || !req.session.username)
+      username = null;
+   else
+      username = req.session.username;
+   
+   getItemById(id, username, (data) => {
+      if(data.success == false) {
+         console.log("Error grabbing item: " + data.err);
+         res.json(data);
+         return false;
+      }
+      else {
+         res.json(data);
+         return true;
+      }
+   });
+}
+
+function getItemById(id, username, callback) {
+   const query = 'SELECT * FROM item WHERE id=$1';
+   const params = [ id ];
+   var maxNumInSet;
+   var numItemsInSet = -1;
+   pool.query(query, params, (err, items) => {
+      if(err) {
+         console.log(err);
+         callback({success: false,
+                   err: err});
+      }
+      if(!items.rows[0]) {
+         console.log("Error finding item in db with id: " + id);
+         callback({success: false,
+                   err: "Couldn't find item in db with id: " + id});
+      }
+      
+      pool.query('SELECT DISTINCT item_name FROM item WHERE set=$1', [ items.rows[0].set ], (err, data) => {
+         if(err) {
+            console.log(err);
+            callback({success: false,
+                      err: err});
+         }
+         maxNumInSet = data.rows.length;
+         if(username != null) {
+            const query0 = `SELECT *
+                            FROM inventory 
+                            INNER JOIN item 
+                            ON inventory.item_id = item.id
+                            WHERE set=$1 AND owner=$2 AND count>0`;
+            const params0 = [ items.rows[0].set, username ];
+            
+            pool.query(query0, params0, (err, data) => {
+               if(err) {
+                  console.log("Error grabbing current number of items in set: " + err);
+                  callback({success: false,
+                            err: err});
+               }
+               numItemsInSet = data.rows.length;
+               callback({success: true,
+                         id: items.rows[0].id,
+                         name: items.rows[0].item_name,
+                         buyPrice: items.rows[0].buy_price,
+                         sellPrice: items.rows[0].sell_price,
+                         set: items.rows[0].set,
+                         imgUrl: items.rows[0].img_url,
+                         rarity: items.rows[0].rarity,
+                         maxItemsInSet: maxNumInSet,
+                         numItemsInSet: numItemsInSet});
+            });
+         }
+         else {
+            callback({success: true,
+                      id: items.rows[0].id,
+                      name: items.rows[0].item_name,
+                      buyPrice: items.rows[0].buy_price,
+                      sellPrice: items.rows[0].sell_price,
+                      set: items.rows[0].set,
+                      imgUrl: items.rows[0].img_url,
+                      rarity: items.rows[0].rarity,
+                      maxNumInSet: maxNumInSet,
+                      numItemsInSet: numItemsInSet});
+         }
+      });
+   });
+}
+
 function updateNewStore(username, callback) {
    var i;
    var query;
    var params;
    
    for(i = 0; i < 10; i++) {
-      getRandomGift(true, (i >= 8), i, function(data) {
-         query = 'UPDATE "user" SET shop_' + data.index + ' = $1 WHERE username=$2';
-         params = [ data.id, username ];
-         pool.query(query, params);
+      getRandomGift(true, (i >= 8), i, (data) => {
+         if(data.success == true) {
+            query = 'UPDATE "user" SET shop_' + data.index + ' = $1 WHERE username=$2';
+            params = [ data.id, username ];
+            pool.query(query, params);
+         }
       });
    }
-   //while(i < 10) {}
    callback(true);
 }
 
@@ -21,12 +217,13 @@ function updateNewGifts(username, callback) {
    
    for(j = 0; j < 4; j++) {
       getRandomGift(false, false, j, function(data) {
-         query = 'UPDATE "user" SET gift_' + data.index + ' = $1 WHERE username=$2';
-         params = [ data.id, username ];
-         pool.query(query, params);
+         if(data.success == true) {
+            query = 'UPDATE "user" SET gift_' + data.index + ' = $1 WHERE username=$2';
+            params = [ data.id, username ];
+            pool.query(query, params);
+         }
       });
    }
-   //while(j < 4){}
    callback(true);
 }
 
@@ -64,18 +261,20 @@ function getUser(username, callback) {
    
    pool.query(query, params, (err, data) => {
       if(err) {
-         console.error(err);
-         callback('-1');
-         return '-1';
+         console.log(err);
+         callback({success: false,
+                   err: err});
+         return false;
       }
       if(!data.rows[0]) {
-         callback('-2');
-         return '-2';
+         callback({success: false,
+                   err: 'Error getting user. User might not exist'});
+         return false;
       }
       
 		pool.query(query, params, (err, data) => {
-			
-			var json = {id: data.rows[0].id,
+			var json = {success: true,
+                     id: data.rows[0].id,
 							firstName: data.rows[0].first_name,
 							lastName: data.rows[0].last_name,
 							username: data.rows[0].username,
@@ -97,8 +296,7 @@ function getUser(username, callback) {
                      shop6: data.rows[0].shop_6,
                      shop7: data.rows[0].shop_7,
                      shop8: data.rows[0].shop_8,
-                     shop9: data.rows[0].shop_9
-                     };
+                     shop9: data.rows[0].shop_9};
 			callback(json);
 			return json;
 		});
@@ -114,15 +312,18 @@ function getGift(req, res) {
    pool.query(query, params, (err, data) => {
       if(err) {
          console.log(err);
-         res.end('-1');
+         res.json({success: false,
+                   err: err});
          return false;
       }
-      if(!data.rows[0]) {
+      else if(!data.rows[0]) {
          console.log("Couldn't find item with id: " + id);
-         res.end('-2');
+         res.json({success: false,
+                   err: "Couldn't find item with id: " + id});
          return false;
       }
-      var json = {id: data.rows[0].id,
+      var json = {success: true,
+                  id: data.rows[0].id,
                   name: data.rows[0].item_name,
                   buyPrice: data.rows[0].buy_price,
                   sellPrice: data.rows[0].sell_price,
@@ -212,9 +413,8 @@ function getRandomGift(store, rarePlus, tmp, callback) {
       else {
          item = 337;
       }
-      if(store == false)
-         console.log(value1, value2);
-      callback({id: item,
+      callback({success: true,
+                id: item,
                 index: tmp});
    }
    else if(type == "item" || type == "set") {
@@ -224,14 +424,14 @@ function getRandomGift(store, rarePlus, tmp, callback) {
       pool.query(query, params, (err, data) => {
          if(err) {
             console.log(err);
-            callback(false);
+            callback({success: false,
+                      err: err});
          }
          else {
             item = randomItem(data.rows);
             item = item.id;
-            if(store == false)
-               console.log(value1, value2);
-            callback({id: item,
+            callback({success: true,
+                      id: item,
                       index: tmp});
          }
       });
@@ -240,7 +440,8 @@ function getRandomGift(store, rarePlus, tmp, callback) {
 
 function purchaseItem(req, res) {
    if(!req.session || !req.session.username) {
-		req.end('-1');
+		res.json({success: false,
+                err: "User isn't logged in"});
 		return false;
    }
    var username = req.session.username;
@@ -250,101 +451,115 @@ function purchaseItem(req, res) {
    console.log("Purchasing item in shop slot: " + shopNumber + " for user: " + username);
    pool.query('SELECT * FROM "user" WHERE username=$1', [ username ], (error, d) => {
       if(error) {
-         res.end('-1');
+         console.log(error);
+         res.json({success: false,
+                   err: error});
          return false;
       }
+      var user = d.rows[0];
+      numShop = user.num_shop;
       
       if(shopNumber == 0) {
-         if(d.rows[0].shop_0 == -1) {
+         if(user.shop_0 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_0;
-      }
-      else if(shopNumber == 1) {
-         if(d.rows[0].shop_1 == -1) {
+         id = user.shop_0;
+      } else if(shopNumber == 1) {
+         if(user.shop_1 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_1;
-      }
-      else if(shopNumber == 2) {
-         if(d.rows[0].shop_2 == -1) {
+         id = user.shop_1;
+      } else if(shopNumber == 2) {
+         if(user.shop_2 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_2;
-      }
-      else if(shopNumber == 3) {
-         if(d.rows[0].shop_3 == -1) {
+         id = user.shop_2;
+      } else if(shopNumber == 3) {
+         if(user.shop_3 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_3;
-      }
-      else if(shopNumber == 4) {
-         if(d.rows[0].shop_4 == -1) {
+         id = user.shop_3;
+      } else if(shopNumber == 4) {
+         if(user.shop_4 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_4;
-      }
-      else if(shopNumber == 5) {
-         if(d.rows[0].shop_5 == -1) {
+         id = user.shop_4;
+      } else if(shopNumber == 5) {
+         if(user.shop_5 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_5;
-      }
-      else if(shopNumber == 6) {
-         if(d.rows[0].shop_6 == -1) {
+         id = user.shop_5;
+      } else if(shopNumber == 6) {
+         if(user.shop_6 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_6;
-      }
-      else if(shopNumber == 7) {
-         if(d.rows[0].shop_7 == -1) {
+         id = user.shop_6;
+      } else if(shopNumber == 7) {
+         if(user.shop_7 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_7;
-      }
-      else if(shopNumber == 8) {
-         if(d.rows[0].shop_8 == -1) {
+         id = user.shop_7;
+      } else if(shopNumber == 8) {
+         if(user.shop_8 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_8;
-      }
-      else if(shopNumber == 9) {
-         if(d.rows[0].shop_9 == -1) {
+         id = user.shop_8;
+      } else if(shopNumber == 9) {
+         if(user.shop_9 == -1) {
             console.error("Already purchased this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: 'Already purchased this gift'});
             return false;
          }
-         id = d.rows[0].shop_9;
-      }
+         id = user.shop_9;
+      } 
       
       console.log("Item id: " + id);
+      
       var remainingBells;
       pool.query('SELECT * FROM item WHERE id=$1', [ id ], (err, items) => {
          if(err) {
-            res.end('-1');
+            console.log(err);
+            res.json({success: false,
+                      err: err});
             return false;
          }
-         remainingBells = d.rows[0].bells - items.rows[0].buy_price;
+         console.log("Item name: " + items.rows[0].item_name);
+         remainingBells = user.bells - items.rows[0].buy_price;
+         console.log("User's bells: " + user.bells);
+         console.log("Item price: " + items.rows[0].buy_price);
+         
          if(remainingBells < 0) {
-            res.end('-1');
+            console.log("Insufficient bells");
+            res.json({success: false,
+                      err: "Insufficient bells"});
             return false;
          }
          
@@ -355,14 +570,17 @@ function purchaseItem(req, res) {
          
          pool.query(query, params, (err0, data0) => {
             if(err0) {
-               res.end('-1');
+               console.log(err0);
+               res.json({success: false,
+                         err: err0});
                return false;
             }
             
             pool.query('SELECT * FROM "user" WHERE username=$1', [username], (errorUser, data) => {
                if(errorUser) {
-                  console.error("User: " + username + " doesn't exist");
-                  res.end('-1');
+                  console.log(errorUser);
+                  res.json({success: false,
+                            err: errorUser});
                   return false;
                }
                numShop = data.rows[0].num_shop;
@@ -389,17 +607,18 @@ function purchaseItem(req, res) {
                var params3 = [ date, username];
                pool.query(query3, params3);
             }
-            res.json({numShop: numShop-1,
+            res.json({success: true,
+                      numShop: numShop-1,
                       bells: remainingBells});
          });
       });
    });
-
 }
 
 function redeemGift(req, res) {
    if(!req.session || !req.session.username) {
-		req.end('-1');
+		res.json({success: false,
+                err: "User isn't logged in"});
 		return false;
    }
    var username = req.session.username;
@@ -409,64 +628,75 @@ function redeemGift(req, res) {
    
    pool.query('SELECT * FROM "user" WHERE username=$1', [ username ], (error, d) => {
       if(error) {
-         res.end('-1');
+         res.json({success: false,
+                   err: error});
          return false;
       }
-      numGifts = d.rows[0].num_gifts;
+      var user = d.rows[0];
+      numGifts = user.num_gifts;
+      
       if(giftNumber == 0) {
-         if(d.rows[0].gift_0 == -1) {
+         if(user.gift_0 == -1) {
             console.error("Already redeemed this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: "Already redeemed this gift"});
             return false;
          }
-         id = d.rows[0].gift_0;
+         id = user.gift_0;
       }
       else if(giftNumber == 1) {
-         if(d.rows[0].gift_1 == -1) {
+         if(user.gift_1 == -1) {
             console.error("Already redeemed this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: "Already redeemed this gift"});
             return false;
          }
-         id = d.rows[0].gift_1;
+         id = user.gift_1;
       }
       else if(giftNumber == 2) {
-         if(d.rows[0].gift_2 == -1) {
+         if(user.gift_2 == -1) {
             console.error("Already redeemed this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: "Already redeemed this gift"});
             return false;
          }
-         id = d.rows[0].gift_2;
+         id = user.gift_2;
       }
       else if(giftNumber == 3) {
-         if(d.rows[0].gift_3 == -1) {
+         if(user.gift_3 == -1) {
             console.error("Already redeemed this gift");
-            res.end('-1');
+            res.json({success: false,
+                      err: "Already redeemed this gift"});
             return false;
          }
-         id = d.rows[0].gift_3;
+         id = user.gift_3;
       }
       
       console.log("Item id: " + id);
       
       if(id == 334) {
-         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+2500, username]);
-         res.json({numGifts: numGifts-1,
-                   bells: d.rows[0].bells+2500});
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+2500, username]);
+         res.json({success: true,
+                   numGifts: numGifts-1,
+                   bells: user.bells+2500});
          return true;
       } else if(id == 335) {
-         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+5000, username]);
-         res.json({numGifts: numGifts-1,
-                   bells: d.rows[0].bells+5000});
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+5000, username]);
+         res.json({success: true,
+                   numGifts: numGifts-1,
+                   bells: user.bells+5000});
          return true;
       } else if(id == 336) {
-         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+8000, username]);
-         res.json({numGifts: numGifts-1,
-                   bells: d.rows[0].bells+8000});
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+8000, username]);
+         res.json({success: true,
+                   numGifts: numGifts-1,
+                   bells: user.bells+8000});
          return true;
       } else if(id == 337) {
-         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [d.rows[0].bells+15000, username]);
-         res.json({numGifts: numGifts-1,
-                   bells: d.rows[0].bells+15000});
+         pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+15000, username]);
+         res.json({success: true,
+                   numGifts: numGifts-1,
+                   bells: user.bells+15000});
          return true;
       }
       
@@ -475,7 +705,8 @@ function redeemGift(req, res) {
       
       pool.query(query, params, (err0, data0) => {
          if(err0) {
-            res.end('-1');
+            res.json({success: false,
+                      err: err0});
             return false;
          }
          pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
@@ -500,39 +731,36 @@ function redeemGift(req, res) {
             var params3 = [ date, username];
             pool.query(query3, params3);
          }
-         res.json({numGifts: numGifts-1,
-                   bells: d.rows[0].bells});
+         res.json({success: true,
+                   numGifts: numGifts-1,
+                   bells: user.bells});
       });
    });
 }
 
 function canResetGifts(username, giftDate, callback) {
    var currentDate = getDate();
-   callback(giftDate == null || giftDate == 'null' || giftDate == undefined || currentDate >= giftDate || username == 'flipf17');
+   callback(giftDate == null || giftDate == 'null' || giftDate == undefined || currentDate >= giftDate);
 }
 
 function getSession(req, res) {
    if (!req.session || !req.session.username || req.session == null || req.session.username == null) { // Check if session exists
-      res.end('-1');
+      res.json({success: false,
+                err: "User not logged in"});
       return false;
    }
-   
    getUser(req.session.username, (returnValue) => {
-      if(returnValue == '-1') {
+      if(returnValue.success == false) {
          console.log("Unknown error grabbing user from db");
-         res.end('-1');
-         return '-1';
-      }
-      else if(returnValue == '-2') {
-         console.log("User doesn't exist");
-         res.end('-2');
-         return '-2';
+         res.json({success: false,
+                   err: "Unknown error grabbing user from db"});
+         return false;
       }
       else {
 			canResetGifts(req.session.username, returnValue.giftDate, (valid) => {
 				if(valid == true) {
                resetGifts(req.session.username, (valid) => {
-                     if(valid) {
+                  if(valid) {
                      getUser(req.session.username, (returnValue2) => {
                         res.json(returnValue2);
                         return returnValue2;
@@ -549,29 +777,45 @@ function getSession(req, res) {
    });
 }
 
+function logout(req, res) {
+   if(!req.session || !req.session.username) {
+      console.log("Not logged in. Aborting logout");
+      res.json({success: false,
+                err: 'Not logged in'});
+   }
+   req.session.destroy();
+   res.json({success: true});
+}
+
 function login(req, res) {
    var username = req.query.username;
    var password = req.query.password;
    
+   if(username == 'admin' && password == 'admin') {
+      console.log("Logging in as admin");
+   }
+   
    var query  = 'SELECT username, password FROM "user" WHERE username = $1';
    var params = [ username ];
   
-   pool.query(query, params, (err, result) => {
-      if(err) {
+   pool.query(query, params, (err, result) => { 
+      if(err) { //User doesn't exist in db
          console.log(err);
-         res.end(err);
-         return 0;
+         res.json({success: false,
+                   error: 'Invalid username and/or password'});
+         return false;
       }
       const user = result.rows[0];
       
-      if(user && passwordHash.verify(password, user.password)) {
+      if(user && passwordHash.verify(password, user.password)) { //Password matches
          console.log("Correct password. Logging in");
          req.session.username = username;
-         res.end('1');
+         res.json({success: true});
       }
-      else {
-         console.log("Failed to log in");
-         res.end('-1');
+      else { //Password doesn't match
+         console.log("Failed to log in. Password doesn't match");
+         res.json({success: false,
+                   err: 'Invalid username and/or password'});
       }
    });
 }
@@ -593,7 +837,9 @@ function register(req, res) {
    pool.query(query, params, (err, result) => {
       const exists = result.rows[0]['exists'];
       if (exists) {
-         res.end('-1'); //Username already exists
+         res.json({success: false,
+                   err: 'User already exists',
+                   code: 1}); //Username already exists
       }       
       var query1  = 'SELECT EXISTS(SELECT email FROM "user" WHERE email = $1)';
       var params1 = [ email ];
@@ -602,7 +848,9 @@ function register(req, res) {
          const exists = result.rows[0]['exists'];
          if (exists) {
             console.log("Email already exists!");
-            res.end('-2'); //Email already exists
+            res.json({success: false,
+                      err: 'Email already taken',
+                      code: 2}); //Email already exists
          }
          var date = getDate();
          var query2 = 'INSERT INTO "user" (first_name, last_name, username, password, email, gift_date) VALUES($1, $2, $3, $4, $5, $6)';
@@ -610,14 +858,15 @@ function register(req, res) {
          pool.query(query2, params2, (err, result) => {
             if(err) {
                console.error(err);
-               res.end(err);
+               res.json({success: false,
+                         err: err,
+                         code: 3});
             }
             else {
-               console.error("No errors adding user to db");
+               console.error("Successfully registered user, and added user to database. Logging user in now.");
                req.session.username = username;
-               res.end('1');
+               res.json({success: true});
             }
-            //db.end();
          });
       });
    });
@@ -636,7 +885,6 @@ var pool = new Pool({connectionString: connectionString});
 const session = require('client-sessions');
 const rn = require('random-number');
 const randomItem = require('random-item');
-const wait = require('wait.for');
 
 express()
    .use(express.json())
@@ -645,19 +893,23 @@ express()
    .use(session({
       cookieName: 'session',
       secret: 'random_string_goes_here',
-      duration: 30 * 60 * 1000,
+      duration: 24 * 60 * 60 * 1000,
       activeDuration: 5 * 60 * 1000,
    }))
    .set('views', path.join(__dirname, 'views'))
    .set('view engine', 'ejs')
    .get('/', (req, res) => res.render('pages/index'))
    .get('/signIn', login)
+   .get('/signOut', logout)
    .get('/getSession', getSession)
    .get('/getDate', getDate)
    .get('/getGift', getGift)
+   .get('/showInventory', getInventory)
+   .get('/getItem', getItem)
    .post('/register', register)
    .post('/redeem', redeemGift)
    .post('/purchase', purchaseItem)
+	.post('/sell', sellItem)
    .listen(PORT, function() { console.log('Listening on ' + PORT);});
 
   

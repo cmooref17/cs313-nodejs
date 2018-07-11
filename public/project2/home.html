@@ -7,15 +7,30 @@
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
    
    <script>
+      function signOut() {
+         $.get("/signOut", function(data, status){
+            if(data.success == true) {
+               window.location = 'home.html';
+            }
+            else if(data.success == false) {
+               console.log('Error signing out: ' + data.err);
+            }
+            else {
+               alert("Got unexepected error: " + data);
+            }
+         });
+      }
+   
       function setBackgroundSize() {
          var load = true;
          if(load) {
+            
             var w = window.innerWidth;
             var h = window.innerHeight;
             var size = w + "px " + h + "px";
             var body = document.getElementById('body');
+            body.style.backgroundSize = "cover";
             body.style.backgroundImage = "url(/images/background.jpg)";
-            body.style.backgroundSize = size;
          }
       }
       
@@ -26,12 +41,15 @@
          var json = {shopNumber: shopNumber};
          $.post("/purchase", json, function(data1, status) {
             console.log(data1);
-            if(data1 != '-1' && data1 != '-2') {
+            if(data1.success == true) {
                document.getElementById("userBells").innerHTML = data1.bells;
                document.getElementById("shopItem" + shopNumber).remove();
                console.log("num shop items: " + data1.numShop);
                if(data1.numGifts == 0)
                   document.getElementById("shopStatus").innerHTML = "You bought out the store. Wow.";
+            }
+            else {
+               console.log("Error purchasing item: " + data1.err);
             }
          });
       }
@@ -42,13 +60,16 @@
          console.log("Gift number: " + giftNumber);
          var json = {giftNumber: giftNumber};
          $.post("/redeem", json, function(data1, status) {
-            if(data1 != '-1' && data1 != '-2') {
+            if(data1.success == true) {
                console.log(data1);
                document.getElementById("gift" + giftNumber).remove();
                console.log("num gifts: " + data1.numGifts);
                document.getElementById('userBells').innerHTML = data1.bells;
                if(data1.numGifts == 0)
                   document.getElementById("giftStatus").innerHTML = "You are out of daily gifts";
+            }
+            else {
+               console.log("Error redeeming item: " + data1.err);
             }
          });
       }
@@ -58,8 +79,8 @@
          var gifts = document.getElementById("gifts");
          console.log("Showing item with id: " + id);
          $.get("/getGift?id=" + id, function(data, status) {
-            if(data == '-1')
-               console.log("Bad item");
+            if(data.success == false)
+               console.log("Error displaying gift: " + data.err);
             else {
                console.log(data.id);
                var color;
@@ -105,8 +126,8 @@
          var gifts = document.getElementById("shopItems");
          console.log("Showing item with id: " + id);
          $.get("/getGift?id=" + id, function(data, status) {
-            if(data == '-1')
-               console.log("Bad item");
+            if(data.success == false)
+               console.log("Error displaying store item: " + data.err);
             else {
                console.log(data.id);
                var color;
@@ -147,22 +168,20 @@
          var shopStatus = document.getElementById("shopStatus");
          
          $.get("/getSession", function(data, status) {
-            if(data == '-1' || data == '-2') {
+            if(data.success == false) {
+               console.log("Error getting user session: " + data.err);
                right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
-               giftStatus.innerHTML = "Log in to view your daily gifts";
-               shopStatus.innerHTML = "Log in to view your daily store items";
+               giftStatus.innerHTML = "Log in to view your daily gift and shop items";
+               document.getElementById("outerDivShop").style.backgroundColor = 'rgb: 100, 100, 100, 0';
+               //shopStatus.innerHTML = "Log in to view your daily store items";
             }
             else {
-               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><span id='userBells'>" + data.bells + "</span> bells</header>";
-               
+               right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br><a href='inventory.html' class='promptLogin' style='color: gray'>View inventory</a></header>";
+               if(data.numGifts > 0)
+                  giftStatus.innerHTML = "Loading gifts...<hr style='margin-left: 16px; margin-right: 16px'>";
+               if(data.numShop > 0)
+                  shopStatus.innerHTML = "Loading shop items...<hr style='margin-left: 16px; margin-right: 16px'>";
                if(data.numGifts > 0) {
-                  giftStatus.innerHTML = "Your free gifts for today!<hr style='margin-left: 16px; margin-right: 16px'>";
-                  shopStatus.innerHTML = "Daily shop items<hr style='margin-left: 16px; margin-right: 16px'>"
-                  
-                  console.log(data.item0);
-                  console.log(data.item1);
-                  console.log(data.item2);
-                  console.log(data.item3);
                   if(data.item0 != -1) {
                      showGift(data.item0, 0);
                   }
@@ -175,6 +194,11 @@
                   if(data.item3 != -1) {
                      showGift(data.item3, 3);
                   }
+                  giftStatus.innerHTML = "Your free gifts for today!<hr style='margin-left: 16px; margin-right: 16px'>";
+               }
+               else
+                  giftStatus.innerHTML = "You are out of daily gifts";
+               if(data.numShop > 0) {
                   if(data.shop0 != -1) {
                      showShopItem(data.shop0, 0);
                   }
@@ -205,12 +229,11 @@
                   if(data.shop9 != -1) {
                      showShopItem(data.shop9, 9);
                   }
-                  
                   gifts.innerHTML += "<br>";
+                  shopStatus.innerHTML = "Your daily shop items<hr style='margin-left: 16px; margin-right: 16px'>";
                }
-               else {
-                  giftStatus.innerHTML = "You are out of daily gifts";
-               }
+               else
+                  shopStatus.innerHTML = "You bought out the store. Wow";
             }
          });
       }
@@ -220,7 +243,7 @@
    
 </head>
 
-<body onresize="setBackgroundSize()" onload="setBackgroundSize()" id="body">
+<body onload="setBackgroundSize()" id="body">
 
    <div style="height: 250px"> <!-- Header --->
       <div id="leftSign" class="leftSign">
@@ -233,11 +256,11 @@
    
    
    <!-- Two divs to wrap content and center it --->
-   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='status' id='giftStatus'></header><div id="gifts" class="gifts">
+   <div id="outerDivGifts" class="outerGifts" style="text-align: center"><header class='status' id='giftStatus'></header><div id="gifts" class="gifts">
       
    </div></div>
    
-   <div id="outerDiv" class="outerGifts" style="text-align: center"><header class='status' id='shopStatus'></header><div id="shopItems" class="gifts">
+   <div id="outerDivShop" class="outerGifts" style="text-align: center; width: 500px"><header class='status' id='shopStatus'></header><div id="shopItems" class="gifts">
       
    </div></div>
    
