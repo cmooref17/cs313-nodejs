@@ -113,7 +113,12 @@ header.leftSignText {
 
 .toOutpost {
    text-decoration: none;
-   color: white;
+   color: rgb(75, 125, 175);
+}
+
+.toOutpost:hover {
+   text-decoration: underline;
+   color: white
 }
 
 .welcome {
