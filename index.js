@@ -676,24 +676,32 @@ function redeemGift(req, res) {
       
       if(id == 334) {
          pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+2500, username]);
+         pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
+         pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
          res.json({success: true,
                    numGifts: numGifts-1,
                    bells: user.bells+2500});
          return true;
       } else if(id == 335) {
          pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+5000, username]);
+         pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
+         pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
          res.json({success: true,
                    numGifts: numGifts-1,
                    bells: user.bells+5000});
          return true;
       } else if(id == 336) {
          pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+8000, username]);
+         pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
+         pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
          res.json({success: true,
                    numGifts: numGifts-1,
                    bells: user.bells+8000});
          return true;
       } else if(id == 337) {
          pool.query('UPDATE "user" SET bells=$1 WHERE username=$2', [user.bells+15000, username]);
+         pool.query('UPDATE "user" SET num_gifts = $1 WHERE username=$2', [ numGifts-1, username ]);
+         pool.query('UPDATE "user" SET gift_' + giftNumber + ' = -1 WHERE username=$1', [ username ]);
          res.json({success: true,
                    numGifts: numGifts-1,
                    bells: user.bells+15000});
