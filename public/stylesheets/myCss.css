@@ -127,10 +127,11 @@ header.leftSignText {
 }
 
 .status {
-   font-family: polygon;
-   font-size: 32px;
-   padding-top: 8px;
    color: red;
+   font-family: polygon;
+   font-size: 30px;
+   margin: 0px;
+   padding-top: 0px;
 }
 
 div.gifts {
@@ -141,9 +142,11 @@ div.gifts {
 }
 
 div.outerGifts {
+   padding-top: 20px;
    z-index: -1;
    background-color: rgb(150, 150, 150, .25);
    border-radius: 8px;
+   width: 100%;
    max-width: 1000px;
    margin: auto;
 }
@@ -160,6 +163,45 @@ div.gift {
    border-radius: 8px;
    display: inline-block;
    vertical-align: top;
+}
+
+div.trade {
+   background-color: rgb(100, 100, 100, .25);
+   padding: 8px;
+   border-radius: 8px;
+   position: relative;
+   font-size: 14px;
+   margin: 4px;
+   width: 450px;
+   height: 225px;
+   max-width: 450px;
+   max-height: 225px;
+   border-radius: 8px;
+   display: inline-block;
+   vertical-align: top;
+   padding: 0px;
+}
+
+div.tradeLeft {
+   border-radius: 4px;
+   width: 30%;
+   height: 60%;
+   margin: 8px;
+   padding: 8px;
+   position: absolute;
+   top: 0;
+   left: 5%;
+}
+
+div.tradeRight {
+   border-radius: 4px;
+   width: 30%;
+   height: 60%;
+   margin: 8px;
+   padding: 8px;
+   position: absolute;
+   top: 0;
+   right: 5%;
 }
 
 img.giftImg {
@@ -195,4 +237,70 @@ div.gift > header {
 
 .redeem:hover {
    color: white;
+}
+
+.expand {
+   padding: 0px;
+   margin: 0px;
+   margin-top: -25px;
+   font-size: 22px;
+   color: rgb(80, 80, 80);
+   float: right;
+}
+.expand > a {
+   font-size: 20px;
+   color: rgb(80, 80, 80);
+   font-family: times;
+   text-decoration: none;
+}
+
+.expand > a:hover {
+   color: white;
+}
+
+div.formOuter {
+   margin: auto;
+   padding: 0px;
+   width: 1000px;
+   display: inline-block;
+}
+
+div.formInner {
+   margin: 0px;
+   padding: 0px;
+   width: 45%;
+   border-radius: 8px;
+   padding: 16px;
+   padding-top: 4px;
+   padding-bottom: 16px;
+   display: inline-block;
+   vertical-align: top;
+   background-color: rgb(100, 100, 100, .25);
+}
+
+.formLeft {
+   left: 0;
+   display: inline-block;
+   width: 50%;
+   margin: 0px;
+   margin-right: 0px;
+   margin-bottom: 4px;
+}
+
+.formRight {
+   right: 0;
+   display: inline-block;
+   width: 45%;
+   margin: 0px;
+   margin-left: 0px;
+   margin-bottom: 4px;
+}
+
+.formLeft > header {
+   text-align: left;
+}
+
+.formRight > input {
+   width: 100%;
+   text-align: left;
 }

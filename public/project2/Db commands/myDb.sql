@@ -42,8 +42,6 @@ CREATE TABLE item
    img_url VARCHAR(1000) NOT NULL
 );
 
-ALTER TABLE item ADD rarity INT DEFAULT(0);
-
 CREATE TABLE inventory
 (
    id SERIAL PRIMARY KEY,
@@ -52,70 +50,12 @@ CREATE TABLE inventory
    count INT default(1)
 );
 
-CREATE TABLE item_set
-(
-   id SERIES PRIMARY KEY,
-   item_id INT NOT NULL REFERENCES item(id),
-   set_id INT NOT NULL REFERENCES set(id)
-);
-
-INSERT INTO item_set (item_id, set_id) VALUES(0, 0);
-
-/*CREATE TABLE item_series
-(
-   id SERIES PRIMARY KEY,
-   item_id INT NOT NULL REFERENCES item(id),
-   series_id INT NOT NULL REFERENCES series(id)
-);*/
-
-CREATE TABLE item_interior_theme
-(
-   id SERIES PRIMARY KEY,
-   item_id INT NOT NULL REFERENCES item(id),
-   interior_theme_id INT NOT NULL REFERENCES interior_theme(id)
-);
-
-INSERT INTO item_interior_theme (item_id, interior_theme_id) VALUES(0, 0);
-
-CREATE TABLE item_fashion_theme
-(
-   id SERIES PRIMARY KEY,
-   item_id INT NOT NULL REFERENCES item(id),
-   fashion_theme_id INT NOT NULL REFERENCES fashion_theme(id)
-);
-
-INSERT INTO fashion_interior_theme (item_id, fashion_theme_id) VALUES(0, 0);
-
-CREATE TABLE item_type
-(
-   id SERIES PRIMARY KEY,
-   item_id INT NOT NULL REFERENCES item(id),
-   type_id INT NOT NULL REFERENCES type(id)
-);
-
-INSERT INTO item_type (item_id, type_id) VALUES(0, 0);
-
-CREATE TABLE set
+CREATE TABLE trade
 (
    id SERIAL PRIMARY KEY,
-   name VARCHAR(100) NOT NULL
+   owner VARCHAR(100) NOT NULL REFERENCES "user"(username),
+   item_offered INT NOT NULL REFERENCES item(id),
+   item_requested INT REFERENCES item(id),
+   trade_completed_by VARCHAR(100) DEFAULT(null) REFERENCES "user"(username),
+   trade_completed BOOLEAN DEFAULT(false)
 );
-
-/*CREATE TABLE series
-(
-   id SERIAL PRIMARY KEY,
-   name VARCHAR(100) NOT NULL
-);*/
-
-CREATE TABLE interior_theme
-(
-   id SERIAL PRIMARY KEY,
-   name VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE fashion_theme
-(
-   id SERIAL PRIMARY KEY,
-   name VARCHAR(100) NOT NULL
-);
-

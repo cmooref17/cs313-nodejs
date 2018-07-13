@@ -7,6 +7,8 @@
    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
    
    <script>
+      user = null;
+   
       function signOut() {
          $.get("/signOut", function(data, status){
             if(data.success == true) {
@@ -102,12 +104,16 @@
                }
                itemDiv.innerHTML += "<header style='font-weight: bold'>Buy price: <span style='position: absolute; right:16px; font-weight: none'>" + data.buyPrice + " bells</span></header>";
                itemDiv.innerHTML += "<header style='font-weight: bold'>Sell price: <span style='position: absolute; right:16px; font-weight: none'>" + data.sellPrice + " bells</span></header>";
-               itemDiv.innerHTML += "<button type='button' class='redeem' onclick='sell(this)' id='" + data.id + "' value='" + count + "'>Sell for " + data.sellPrice + "</button>";
+               if(user == null)
+                  itemDiv.innerHTML += "<button type='button' class='redeem' onclick='sell(this)' id='" + data.id + "' value='" + count + "'>Sell for " + data.sellPrice + "</button>";
             }
          });
       }
       
       function drawPage() {
+         var link = document.location.href.split('?user=');
+         user = link[1];
+      
          var right = document.getElementById("rightSign");
          var inventory = document.getElementById("inventory");
          var inventoryStatus = document.getElementById("inventoryStatus");
@@ -123,7 +129,7 @@
             else {
                console.log("Found user session for user: " + data.username);
                right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br></header>";
-               $.get("/showInventory", function(data1, status) {
+               $.get("/showInventory?user=" + user, function(data1, status) {
                   if(data1.success == false) {
                      console.log("Error grabbing items from inventory: " + data1.err);
                      inventoryStatus.innerHTML = "Error with inventory";
@@ -135,11 +141,17 @@
                         for(i = 0; data1[i]; i++) {
                            showItem(data1[i], i);
                         }
-                        inventoryStatus.innerHTML = "Inventory<hr style='margin-left: 16px; margin-right: 16px'>";
+                        if(user != null)
+                           inventoryStatus.innerHTML = user + "'s Inventory<hr style='margin-left: 16px; margin-right: 16px'>";
+                        else
+                           inventoryStatus.innerHTML = "Inventory<hr style='margin-left: 16px; margin-right: 16px'>";
                      }
                      else {
                         console.log("Inventory empty");
-                        inventoryStatus.innerHTML = "Your inventory is empty";
+                        if(user == null)
+                           inventoryStatus.innerHTML = "Your inventory is empty";
+                        else
+                           inventoryStatus.innerHTML = user + "'s inventory is empty";
                      }
                   }
                });
@@ -161,8 +173,6 @@
       <div id="rightSign" class="rightSign">
       
    </div></div>
-   
-   
    
    <!-- Two divs to wrap content and center it --->
    <div id="outerDivInventory" class="outerGifts" style="text-align: center"><header class='status' id='inventoryStatus'></header><div id="inventoryDiv" class="gifts">

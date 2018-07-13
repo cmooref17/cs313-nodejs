@@ -215,7 +215,7 @@
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Confirm password<span id='errorPassword2' class='error'></span></header></span>";
             window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignUp' oninput='displayPasswordError()' id='password2' name='password2' type='password' placeholder='Confirm password'></span><br>";
             window.innerHTML += "</form>";
-            window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='register()'>Create account</button></header>";
+            window.innerHTML += "<header style='margin: 8px'><button type='button' style='width: 120px' onclick='register()'>Create account</button></header>";
             window.innerHTML += "<header class='switchWindow'><a href='#signIn' onclick='changeWindow()'>Already have an account?</a></header>";
             document.getElementById('firstName').focus();
          }
@@ -228,7 +228,7 @@
             window.innerHTML += "<span class='loginLeft'><header style='margin: 0px'>Password<span id='errorPassword' class='error'></span></header></span>";
             window.innerHTML += "<span class='loginRight'><input onkeypress='keyPress()' form='formSignIn' id='password' name='password' type='password' placeholder='Password'></span><br>";
             window.innerHTML += "</form>";
-            window.innerHTML += "<header style='margin: 8px'><button style='width: 120px' onclick='signIn()'>Login</button></header>";
+            window.innerHTML += "<header style='margin: 8px'><button type='button' style='width: 120px' onclick='signIn()'>Login</button></header>";
             window.innerHTML += "<header class='switchWindow'><a href='#signUp' onclick='changeWindow()'>Don't have an account?</a></header>";
             document.getElementById('username').focus();
          }

@@ -1,3 +1,210 @@
+function postTrade(req, res) {
+   if(!req.session || !req.session.username) {
+      console.log("User not signed in when posting trade");
+      res.json({success: false,
+                err: "User not signed in"});
+      return false;
+   }
+   var username = req.session.username;
+   var offeredItem = req.body.offer;
+   var requestedItem = req.body.request;
+}
+
+function getTradeItems(req, res) {
+   var offerId = -1;
+   var requestId = -1;
+   var showApplicable = req.query.showApplicable;
+   console.log("applic: " + showApplicable);
+   var username = null;
+   if(req.session.username)
+      username = req.session.username;
+   
+   //Get offer item id
+   pool.query('SELECT * FROM item WHERE item_name=$1', [ req.query.offer ], (err, data) => {
+      if(!err && data.rows[0]) {
+         offerId = data.rows[0].id;
+         console.log("Offerid: " + offerId);
+      }
+      else {
+         offerId = -1;
+         if(req.query.offer != "") {
+            res.json([]);
+            console.log("Found no item in db named: " + req.query.offer);
+            return 0;
+         }
+      }
+      //Get request item id
+      pool.query('SELECT * FROM item WHERE item_name=$1', [ req.query.request ], (err, data) => {
+         if(!err && data.rows[0]) {
+            requestId = data.rows[0].id;
+            console.log("Requestid: " + requestId);
+         }
+         else {
+            requestId = -1;
+            if(req.query.request != "") {
+               res.json([]);
+               console.log("Found no item in db named: " + req.query.request);
+               return 0;
+            }
+         }
+         
+         var query = 'SELECT * FROM trade ';
+         var params = [];
+         var index = 1;
+         if((showApplicable == true || showApplicable == 'true') && username != null) {
+            console.log("Got here");
+            query += `INNER JOIN inventory
+                      ON trade.item_requested = inventory.item_id
+                      WHERE inventory.owner=$` + index + ` AND trade_completed=$` + (index+1) + ` `;
+            params.push(username);
+            params.push(false);
+            index += 2;
+         }
+         else {
+            query += 'WHERE trade_completed=$' + index + ' ';
+            params.push(false);
+            index++;
+         }
+         
+         if(offerId != -1) {
+            query += 'AND item_offered=$' + index + ' ';
+            params.push(offerId);
+            index++;
+         }
+         if(requestId != -1) {
+            query += 'AND item_requested=$' + index + ' ';
+            params.push(requestId);
+            index++;
+         }
+         console.log("Stuff: " + showApplicable, username);
+         
+         query += 'LIMIT $' + index + ' OFFSET $' + (index+1);
+         params.push(req.query.limit);
+         params.push(req.query.offset);
+         
+         console.log("ids:", offerId, requestId);
+         console.log("query:", query);
+         console.log("params:", params);
+        
+         pool.query(query, params, (err, data) => {
+            if(err) {
+               console.log("Error grabbing trade items: " + err);
+               console.log("Offset: " + req.query.offset + " Limit: " + req.query.limit);
+               res.json({success: false,
+                         err: err});
+               return false;
+            }
+            if(req.query.offer || req.query.request)
+               console.log("Searching by item offered: " + req.query.offer + ". Item requested: " + req.query.request);
+            console.log("Found " + data.rows.length + " items in trade db");
+            for(var i = 0; i < data.rows.length; i++) {
+               console.log(i + ": " + data.rows[i].item_offered, data.rows[i].item_requested);
+            }
+            res.json(data.rows);
+            return true;
+         });
+      });
+   });
+}
+
+function completeTrade(req, res) {
+   if(!req.session || !req.session.username) {
+      console.log("User not signed in when posting trade");
+      res.json({success: false,
+                err: "User not signed in"});
+      return false;
+   }
+   console.log("Attempting trade...");
+   var user = req.session.username;
+   var tradeId = req.body.id;
+   console.log("Trade id: " + tradeId);
+   const query = 'SELECT * FROM trade WHERE id=$1';
+   const params = [ tradeId ];
+   pool.query(query, params, (err, data) => {
+      if(err || !data.rows[0]) {
+         console.log("Error loading trade with id: " + tradeId);
+         console.log(err);
+         res.json({success: false,
+                   err: err});
+         return false;
+      }
+      var trade = data.rows[0];
+      var offer = trade.item_offered;
+      var request = trade.item_requested;
+      //Does owner still own offered item?
+      pool.query('SELECT * FROM inventory WHERE owner=$1 AND item_id=$2', [ trade.owner, trade.item_offered ], (err, data) => {
+         if(err || !data.rows[0]) {
+            console.log("Error. Owner may not own that item anymore");
+            console.log(err);
+            res.json({success: false,
+                      err: err});
+            pool.query('UPDATE trade SET trade_completed=$1 WHERE id=$2', [ true, tradeId ]); //Close trade
+            return false;
+         }
+         //Does user own requested item?
+         pool.query('SELECT * FROM inventory WHERE owner=$1 AND item_id=$2', [ user, trade.item_requested], (err, data) => {
+            if(err || !data.rows[0]) {
+               console.log("Error. User may not own requested item.");
+               console.log(err);
+               res.json({success: false,
+                         err: err});
+               return false;
+            }
+            //Attempt to give trade owner requested item
+            giveItem(trade.owner, trade.item_requested, (data) => {
+               if(data.success == false) {
+                  console.log("Error giving owner requested item: " + data.err);
+                  res.json(data);
+               }
+               //Attempt to give user offered item
+               giveItem(user, trade.item_offered, (data) => {
+                  if(data.success == false) {
+                     console.log("Error giving owner's offered item: " + data.err);
+                     res.json(data);
+                  }
+                  //Remove offered item from trade owner
+                  removeItem(trade.owner, trade.item_offered, (data) => {
+                     if(data.success == false) {
+                        console.log("Error in removing owner's offered item: " + data.err);
+                        res.json(data);
+                        return false;
+                     }
+                     //Remove requested item from user
+                     removeItem(user, trade.item_requested, (data) => {
+                        if(data.success == false) {
+                           console.log("Error in removing owner's requested item: " + data.err);
+                           res.json(data);
+                           return false;
+                        }
+                        //Close trade
+                        pool.query('UPDATE trade SET trade_completed=$1 WHERE id=$2', [ true, trade.id ], (err, data) => {
+                           if(err) {
+                              console.log(err);
+                              res.json({success: false,
+                                        err: err});
+                              return false;
+                           }
+                           //Set trade completed by...
+                           pool.query('UPDATE trade SET trade_completed_by=$1 WHERE id=$2', [ user, trade.id ], (err, data) => {
+                              if(err) {
+                                 console.log(err);
+                                 res.json({success: false,
+                                           err: err});
+                                 return false;
+                              }
+                              console.log('Trade completed');
+                              res.json({success: true});
+                           });
+                        });
+                     });
+                  });
+               });
+            });
+         });
+      });
+   });
+}
+
 function sellItem(req, res) {
 	if(!req.session || !req.session.username) {
 		res.json({success: false,
@@ -87,12 +294,14 @@ function getInventory(req, res) {
       return false;
    }
    var username = req.session.username;
+   if(req.query.user != null)
+      username = req.query.user;
    
    const query = `SELECT * FROM inventory 
-                  INNER JOIN item 
-                  ON inventory.item_id = item.id 
-                  WHERE owner=$1 AND count > 0
-                  ORDER BY set, rarity ASC`;
+                     INNER JOIN item 
+                     ON inventory.item_id = item.id 
+                     WHERE owner=$1 AND count > 0
+                     ORDER BY set, rarity ASC`;
    const params = [ username ];
    pool.query(query, params, (err, items) => {
       if(err) {
@@ -271,8 +480,12 @@ function getUser(username, callback) {
                    err: 'Error getting user. User might not exist'});
          return false;
       }
-      
+      var currentDate = new Date();
+      console.log("Date: " + currentDate.getDate());
 		pool.query(query, params, (err, data) => {
+         var giftDate = data.rows[0].gift_date;
+         var timeUntilReset = parseInt((giftDate - currentDate)/1000); //Time in seconds
+
 			var json = {success: true,
                      id: data.rows[0].id,
 							firstName: data.rows[0].first_name,
@@ -281,6 +494,7 @@ function getUser(username, callback) {
 							email: data.rows[0].email,
 							bells: data.rows[0].bells,
 							giftDate: data.rows[0].gift_date,
+                     timeUntilReset: timeUntilReset,
 							numGifts: data.rows[0].num_gifts,
                      numShop: data.rows[0].num_shop,
 							item0: data.rows[0].gift_0,
@@ -615,6 +829,70 @@ function purchaseItem(req, res) {
    });
 }
 
+function giveItem(user, itemId, callback) {
+   const query = 'SELECT * FROM inventory WHERE owner=$1 AND item_id=$2';
+   const params = [ user, itemId ];
+   
+   pool.query(query, params, (err, data) => {
+      var inventory = data.rows[0];
+      if(err) {
+         console.log(err);
+         callback({success: false,
+                   err: err});
+      }
+      if(!inventory) { //Create new inventory
+         pool.query('INSERT INTO inventory (owner, item_id) VALUES($1, $2)', [user, itemId], (err, data) => {
+            if(err) {
+               console.log(err);
+               callback({success: false,
+                         err: err});
+            }
+            callback({success: true}); //Inserted new item into inventory successfully
+         });
+      }
+      else { //Increment count of item
+         pool.query('UPDATE inventory SET COUNT=$1 WHERE owner=$2 AND item_id=$3', [(inventory.count+1), user, itemId], (err, data) => {
+            if(err) {
+               console.log(err);
+               callback({success: false,
+                         err: err});
+            }
+            callback({success: true}); //Incremented item count in inventory successfully
+         });
+      }
+   });
+}
+
+function removeItem(user, itemId, callback) {
+   const query = 'SELECT * FROM inventory WHERE owner=$1 AND item_id=$2 AND count>0';
+   const params = [ user, itemId ];
+   
+   pool.query(query, params, (err, data) => {
+      var inventory = data.rows[0];
+      if(err) {
+         console.log(err);
+         callback({success: false,
+                   err: err});
+      }
+      console.log("New item count: " + (inventory.count-1) + " of item: " + itemId);
+      if(inventory.count>0) { //Create new inventory
+         pool.query('UPDATE inventory SET count=$1 WHERE owner=$2 AND item_id=$3', [(inventory.count-1), user, itemId], (err, data) => {
+            if(err) {
+               console.log(err);
+               callback({success: false,
+                         err: err});
+            }
+            callback({success: true}); //Inserted new item into inventory successfully
+         });
+      }
+      else {
+         console.log("Failed to remove item with count: " + inventory.count);
+         callback({success: false,
+                   err: 'Item count: ' + inventory.count});
+      }
+   });
+}
+
 function redeemGift(req, res) {
    if(!req.session || !req.session.username) {
 		res.json({success: false,
@@ -883,7 +1161,6 @@ function register(req, res) {
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
-//const pg = require('pg');
 const connectionString = process.env.DATABASE_URL || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@ec2-54-83-0-158.compute-1.amazonaws.com:5432/d1lvra62cii5am?ssl=true' || 'postgres://mekritpfsaierc:72aaf980673b4269d1801b6a1a9cc57cb4002133545a550c330d291d943f899c@localhost:5432/d1lvra62cii5am?ssl=true';
 
 const { Pool } = require('pg');
@@ -901,7 +1178,7 @@ express()
    .use(session({
       cookieName: 'session',
       secret: 'random_string_goes_here',
-      duration: 24 * 60 * 60 * 1000,
+      duration: 24 * 60 * 60 * 1000, //24 hours
       activeDuration: 5 * 60 * 1000,
    }))
    .set('views', path.join(__dirname, 'views'))
@@ -914,10 +1191,13 @@ express()
    .get('/getGift', getGift)
    .get('/showInventory', getInventory)
    .get('/getItem', getItem)
+   .get('/getTradeItems', getTradeItems)
    .post('/register', register)
    .post('/redeem', redeemGift)
    .post('/purchase', purchaseItem)
 	.post('/sell', sellItem)
+   .post('/postTrade', postTrade)
+   .post('/completeTrade', completeTrade)
    .listen(PORT, function() { console.log('Listening on ' + PORT);});
 
   
