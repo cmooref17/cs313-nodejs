@@ -129,11 +129,17 @@
             else {
                console.log("Found user session for user: " + data.username);
                right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br></header>";
-               $.get("/showInventory?user=" + user, function(data1, status) {
+               var url;
+               if(user == null)
+                  url = "/showInventory?user=";
+               else
+                  url = "/showInventory?user=" + user;
+               $.get(url, function(data1, status) {
                   if(data1.success == false) {
                      console.log("Error grabbing items from inventory: " + data1.err);
                      inventoryStatus.innerHTML = "Error with inventory";
                   } else {
+                     console.log(data1[0]);
                      if(data1[0]) {
                         console.log(data1[0]);
                         inventoryStatus.innerHTML = "Loading inventory<hr style='margin-left: 16px; margin-right: 16px'>";

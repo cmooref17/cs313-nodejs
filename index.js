@@ -8,6 +8,53 @@ function postTrade(req, res) {
    var username = req.session.username;
    var offeredItem = req.body.offer;
    var requestedItem = req.body.request;
+   
+   var offerId;
+   var requestId;
+   
+   //Get offered item id
+   pool.query('SELECT * FROM item WHERE item_name=$1', [ offeredItem ], (err, data) => {
+      if(err || !data.rows[0]) {
+         console.log(err);
+         res.json({success: false,
+                   err: err});
+         return false;
+      }
+      offerId = data.rows[0].id;
+      //Get requested item id
+      pool.query('SELECT * FROM item WHERE item_name=$1', [ requestedItem ], (err, data) => {
+         if(err || !data.rows[0]) {
+            console.log(err);
+            res.json({success: false,
+                      err: err});
+            return false;
+         }
+         requestId = data.rows[0].id;
+         
+         //Verify user has offered item
+         pool.query('SELECT * FROM inventory WHERE owner=$1 AND item_id=$2 AND count>$3', [username, offerId, 0], (err, data) => {
+            if(err || !data.rows[0]) {
+               console.log(err);
+               res.json({success: false,
+                         err: err});
+               return false;
+            }
+            
+            //Create trade
+            pool.query('INSERT INTO trade (owner, item_offered, item_requested) VALUES($1, $2, $3)', [username, offerId, requestId], (err, data) => {
+               if(err) {
+                  console.log(err);
+                  res.json({success: false,
+                            err: err});
+                  return false;
+               }
+               console.log("Successfully created a trade offer for: " + username);
+               res.json({success: true});
+               return true;
+            });
+         });
+      });
+   });
 }
 
 function getTradeItems(req, res) {
@@ -294,8 +341,10 @@ function getInventory(req, res) {
       return false;
    }
    var username = req.session.username;
-   if(req.query.user != null)
+   if(req.query.user) {
       username = req.query.user;
+      console.log("user:" + username);
+   }
    
    const query = `SELECT * FROM inventory 
                      INNER JOIN item 

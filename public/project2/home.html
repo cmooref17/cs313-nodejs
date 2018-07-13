@@ -55,6 +55,20 @@
          }
       }
       
+      function postTrade() {
+         var offer = document.getElementById("offer").value;
+         var request = document.getElementById("request").value;
+         var json = {offer: offer,
+                     request: request};
+         $.post("/postTrade", json, function(data, status) {
+            if(data.success == false) {
+               console.log("Error posting trade: " + data.err);
+            } else {
+               loadTradeItems();
+            }
+         });
+      }
+      
       function purchase(data) {
          console.log("Purchasing gift");
          var shopNumber = data.id;
@@ -116,7 +130,7 @@
                   document.getElementById("tradeStatus").innerHTML = "Trade offers";
                }
                else {
-                  document.getElementById("tradeStatus").innerHTML = "Found not trade offers with given filters";
+                  document.getElementById("tradeStatus").innerHTML = "Found no trade offers";
                   document.getElementById("tradeHr").innerHTML = "";
                }
             }
