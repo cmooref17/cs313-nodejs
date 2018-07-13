@@ -189,7 +189,7 @@ div.tradeLeft {
    margin: 8px;
    padding: 8px;
    position: absolute;
-   top: 0;
+   top: 8%;
    left: 5%;
 }
 
@@ -200,7 +200,7 @@ div.tradeRight {
    margin: 8px;
    padding: 8px;
    position: absolute;
-   top: 0;
+   top: 8%;
    right: 5%;
 }
 
@@ -210,7 +210,6 @@ img.giftImg {
    width: 40%;
    margin: 0px;
    padding: 0px;
-   
 }
 
 div.gift > header {
@@ -303,4 +302,13 @@ div.formInner {
 .formRight > input {
    width: 100%;
    text-align: left;
+}
+
+.userLink {
+   color: blue;
+   text-decoration: none;
+}
+
+.userLink:hover {
+   color: white;
 }

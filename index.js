@@ -133,7 +133,7 @@ function completeTrade(req, res) {
       var request = trade.item_requested;
       //Does owner still own offered item?
       pool.query('SELECT * FROM inventory WHERE owner=$1 AND item_id=$2', [ trade.owner, trade.item_offered ], (err, data) => {
-         if(err || !data.rows[0]) {
+         if(err || !data.rows[0] || data.rows[0].count == 0) {
             console.log("Error. Owner may not own that item anymore");
             console.log(err);
             res.json({success: false,
@@ -143,7 +143,7 @@ function completeTrade(req, res) {
          }
          //Does user own requested item?
          pool.query('SELECT * FROM inventory WHERE owner=$1 AND item_id=$2', [ user, trade.item_requested], (err, data) => {
-            if(err || !data.rows[0]) {
+            if(err || !data.rows[0] || data.rows[0].count == 0) {
                console.log("Error. User may not own requested item.");
                console.log(err);
                res.json({success: false,
@@ -867,9 +867,10 @@ function removeItem(user, itemId, callback) {
    const query = 'SELECT * FROM inventory WHERE owner=$1 AND item_id=$2 AND count>0';
    const params = [ user, itemId ];
    
+   console.log(query, params);
    pool.query(query, params, (err, data) => {
       var inventory = data.rows[0];
-      if(err) {
+      if(err && inventory) {
          console.log(err);
          callback({success: false,
                    err: err});

@@ -82,8 +82,8 @@
             }
             else {
                console.log("Trade successful!");
-               loadTradeItems();
             }
+            loadTradeItems();
          });
       }
       
@@ -141,14 +141,16 @@
                
                tradeItems.innerHTML += "<div id='trade" + trade.id + "' class='trade'></div>";
                var tradeDiv = document.getElementById('trade' + trade.id);
-               
-               tradeDiv.innerHTML =  "<div style='background-color: " + color[offer.rarity] + "' class='tradeLeft'><img class='giftImg' style='width: 100%; height: 100%' src='" + offer.imgUrl + "'></div>";
+               console.log("Owner: " + trade.owner);
+               tradeDiv.innerHTML  =  "<div style='color: blue; height: 8px; top: -8%; z-index: 10' class='tradeLeft'><header style='font-weight: bold'><a class='userLink' href='inventory.html?user=" + trade.owner + "'>" + trade.owner + "</a></header></div>";
+               tradeDiv.innerHTML +=  "<div style='color: black; height: 8px; top: -8%; z-index: 10' class='tradeRight'><header style='font-weight: bold'>Wants</header></div>";
+               tradeDiv.innerHTML +=  "<div class='tradeLeft' style='background-color: " + color[offer.rarity] + "'><img class='giftImg' style='width: 100%; height: 100%' src='" + offer.imgUrl + "'></div>";
                tradeDiv.innerHTML += "<div style='background-color: " + color[request.rarity] + "' class='tradeRight'><img class='giftImg' style='width: 100%; height: 100%' src='" + request.imgUrl + "'></div><br>";
-               tradeDiv.innerHTML +=  "<div style='height: 8px; top: 62%' class='tradeLeft'><header style='font-weight: bold'>" + offer.name + "</header></div>";
-               tradeDiv.innerHTML += "<div style='height: 8px; top: 62%' class='tradeRight'><header style='font-weight: bold'>" + request.name + "</header></div><br>";
-               tradeDiv.innerHTML +=  "<div style='color: yellow; height: 8px; top: 68%' class='tradeLeft'><header style='font-weight: bold'>" + offer.set + "</header></div>";
-               tradeDiv.innerHTML += "<div style='color: yellow; height: 8px; top: 68%' class='tradeRight'><header style='font-weight: bold'>" + request.set  + "</header></div><br>";
-               tradeDiv.innerHTML += "<header style='position: absolute; left: 0; right: 0; bottom: 0px'><button id='" + trade.id + "' onclick='completeTrade(this)' style='width: 50%; border-radius: 4px' type='button'>Trade</button></header>";
+               tradeDiv.innerHTML +=  "<div style='color: yellow; width: 60%; height: 8px; top: 70%' class='tradeLeft'><header style='white-space:nowrap; padding: 0; margin-right: 150px; font-weight: bold'>" + offer.name + "</header></div>";
+               tradeDiv.innerHTML += "<div style='color: yellow; width: 60%; height: 8px; top: 70%' class='tradeRight'><header style='white-space:nowrap; padding: 0; margin-left: 150px; font-weight: bold'>" + request.name + "</header></div><br>";
+               tradeDiv.innerHTML +=  "<div style='width: 60%; color: yellow; height: 8px; top: 78%' class='tradeLeft'><header style='white-space:nowrap; padding: 0; margin-right: 150px; font-weight: bold'>" + offer.set + "</header></div>";
+               tradeDiv.innerHTML += "<div style='width: 60%; color: yellow; height: 8px; top: 78%' class='tradeRight'><header style='white-space:nowrap; padding: 0; margin-left: 150px; font-weight: bold'>" + request.set  + "</header></div><br>";
+               tradeDiv.innerHTML += "<header style='position: absolute; left: 0; right: 0; bottom: 0%'><button id='" + trade.id + "' onclick='completeTrade(this)' style='width: 18%; border-radius: 4px' type='button'>Trade</button></header>";
             });
          });
       }
