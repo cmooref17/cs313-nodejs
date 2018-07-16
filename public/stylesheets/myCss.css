@@ -312,3 +312,12 @@ div.formInner {
 .userLink:hover {
    color: white;
 }
+
+.nextPrevPage {
+   color: blue;
+   margin: 32px;
+}
+
+.nextPrevPage:hover {
+   color: white;
+}

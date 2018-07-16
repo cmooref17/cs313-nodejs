@@ -109,6 +109,45 @@
          console.log(offerFilter, requestFilter, showApplicable);
          var url = "/getTradeItems?offset=" + offset + "&limit=" + limit + "&offer=" + offerFilter + "&request=" + requestFilter + "&showApplicable=" + showApplicable;
          console.log(url);
+         
+         $.get('/showInventory', function(data, status) {
+            if(data.success == false) {
+               console.log('Error getting item names: ' + data.err);
+            }
+            else {
+               console.log('Getting item names...');
+               var x = document.getElementById('offer');
+               var i;
+               x.innerHTML = "<option value='' selected >Item name</option>";
+               for(i = 0; i < data.length; i++) {
+                  var text = "<option value='" + data[i].item_name + "'>" + data[i].item_name + "</option>";
+                  x.innerHTML += text;
+               }
+            }
+         });
+
+         $.get('/getItemNames', function(data, status) {
+            if(data.success == false) {
+               console.log('Error getting item names: ' + data.err);
+            }
+            else {
+               console.log('Getting item names...');
+               var x = document.getElementById('offerFilter');
+               var y = document.getElementById('requestFilter');
+               var z = document.getElementById('request');
+               var i;
+               x.innerHTML = "<option value='' selected>Item name</option>";
+               y.innerHTML = "<option value='' selected>Item name</option>";
+               z.innerHTML = "<option value='' selected>Item name</option>";
+               for(i = 0; i < data.length; i++) {
+                  var text = "<option value='" + data[i].item_name + "'>" + data[i].item_name + "</option>";
+                  x.innerHTML += text;
+                  y.innerHTML += text;
+                  z.innerHTML += text;
+               }
+            }
+         });
+         
          $.get(url, function(data, status) {
             if(data.success == false) {
                console.log("Error loading trade items from db");
@@ -169,7 +208,8 @@
          });
       }
       
-      function switchTradePage(amount) {
+      function switchTradePage(a) {
+         var amount = a.value;
          limit += limit*amount;
          loadTradeItems();
       }
@@ -457,9 +497,9 @@
             <h1 style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Post trade offer</h1>
             <form id="postTrade" method="GET" action="javascript:void(0);">
                <span class='formLeft'><header style='margin: 0px'>Item offer</header></span>
-               <span class='formRight'><input onkeydown='postKeyDown()' form='postTrade' id='offer' name='offerId' type='text' placeholder='ice table'></span><br>
+               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='offer'></select></span><br>
                <span class='formLeft'><header style='margin: 0px'>Item request</header></span>
-               <span class='formRight'><input onkeydown='postKeyDown()' form='postTrade' id='request' name='requestId' type='text' placeholder='ice chair'></span><br>
+               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='request'></select></span><br>
                <header style='margin: 8px'><button type="button" style='width: 150px' onclick='postTrade()'>Create trade offer</button></header>
             </form>
          </div>
@@ -467,9 +507,9 @@
             <h1 style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Filter trade offers</h1>
             <form id="filterTrade" method="GET" action="javascript:void(0);">
                <span class='formLeft'><header style='margin: 0px'>Search by item offered</header></span>
-               <span class='formRight' style='width: 35%'><input onkeydown='loadKeyDown()' form='filterTrade' id='offerFilter' name='offerId' type='text' placeholder='ice table'></span><br>
+               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='offerFilter'></select></span><br>
                <span class='formLeft'><header style='margin: 0px'>Search by item requested</header></span>
-               <span class='formRight' style='width: 35%'><input onkeydown='loadKeyDown()' form='filterTrade' id='requestFilter' name='requestId' type='text' placeholder='ice chair'></span><br>
+               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='requestFilter'></select></span><br>
                <header style='margin: 0px'><input form='filterTrade' id='applicableFilter' name='canTradeId' type='checkbox'>Show only requested items you own</header>
                <br>
                <header style='margin: 8px'><button type="button" style='width: 150px' onclick='loadTradeItems()'>Load new trade items</button></header>
@@ -477,7 +517,8 @@
          </div>
          </div><span id='tradeHr'></span><br><br>
             
-         <div id='tradeItems' class='gifts'></div>
+         <div id='tradeItems' class='gifts' style='height: 250px'></div>
+         <a class='nextPrevPage' onclick='switchTradePage(this)' value='-1' href='javascript:void(0);'>Prev page</a><a class='nextPrevPage' onclick='switchTradePage(this)' value='1' href='javascript:void(0);'>Next page</a>
       </div>
    </div>
    

@@ -1,3 +1,25 @@
+function getItemsInDb(req, res) {
+   const query = 'SELECT item_name FROM item WHERE id >= $1';
+   const params = [ 0 ];
+   
+   pool.query(query, params, (err, data) => {
+      if(err) {
+         console.log(err);
+         res.json({success: false,
+                   err: err});
+      }
+      else if(!data.rows[0]) {
+         console.log('Found no items in db');
+         res.json({success: false,
+                   err: 'Found no items in db'});
+      }
+      else {
+         console.log("Num items: " + data.rows.length);
+         res.json(data.rows);
+      }
+   });
+}
+
 function postTrade(req, res) {
    if(!req.session || !req.session.username) {
       console.log("User not signed in when posting trade");
@@ -347,10 +369,10 @@ function getInventory(req, res) {
    }
    
    const query = `SELECT * FROM inventory 
-                     INNER JOIN item 
-                     ON inventory.item_id = item.id 
-                     WHERE owner=$1 AND count > 0
-                     ORDER BY set, rarity ASC`;
+                  INNER JOIN item 
+                  ON inventory.item_id = item.id 
+                  WHERE owner=$1 AND count > 0
+                  ORDER BY set, rarity ASC`;
    const params = [ username ];
    pool.query(query, params, (err, items) => {
       if(err) {
@@ -1242,6 +1264,7 @@ express()
    .get('/showInventory', getInventory)
    .get('/getItem', getItem)
    .get('/getTradeItems', getTradeItems)
+   .get('/getItemNames', getItemsInDb)
    .post('/register', register)
    .post('/redeem', redeemGift)
    .post('/purchase', purchaseItem)
