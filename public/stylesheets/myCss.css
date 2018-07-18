@@ -314,10 +314,15 @@ div.formInner {
 }
 
 .nextPrevPage {
-   color: blue;
+   font-size: 18px;
+   color: black;
    margin: 32px;
 }
 
-.nextPrevPage:hover {
+.link {
+   color: blue;
+}
+
+.link:hover {
    color: white;
 }

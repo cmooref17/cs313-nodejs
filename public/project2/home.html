@@ -8,23 +8,32 @@
    
    <script>
       offset = 0;
-      limit = 9;
+      limit = 5;
       search_offer = null;
       search_request = null;
       search_owner = null;
-      timeUntilReset = null;
+      timeUntilReset = 0;
       
       function updateResetTime() {
+         var hours;
+         var minutes;
+         var seconds;
          if(timeUntilReset > 0) {
             var tmp = timeUntilReset;
-            var hours = parseInt(tmp / (60*60));
+            hours = parseInt(tmp / (60*60));
             tmp = tmp % (60*60);
-            var minutes = parseInt(tmp / 60);
+            minutes = parseInt(tmp / 60);
             tmp = tmp % 60;
-            var seconds = tmp;
+            seconds = tmp;
             
             document.getElementById("resetTime").innerHTML = "Time until gifts reset<br>" + hours + " - " + minutes + " - " + seconds;
             timeUntilReset--;
+         }
+         else {
+            hours = 0;
+            minutes = 0;
+            seconds = 0;
+            document.getElementById("resetTime").innerHTML = "Time until gifts reset<br>" + hours + " - " + minutes + " - " + seconds;
          }
       }
       
@@ -151,20 +160,22 @@
          $.get(url, function(data, status) {
             if(data.success == false) {
                console.log("Error loading trade items from db");
+               document.getElementById("tradeStatus").innerHTML = "Found no trade offers";
             }
             else {
                document.getElementById('tradeItems').innerHTML = "";
-               console.log("Grabbed " + data.length + " item(s)");
-               if(data.length > 0) {
-                  document.getElementById("tradeStatus").innerHTML = "Loading trade offers...";
+               console.log("Grabbed " + data.trades.length + " item(s)");
+               var numTrades = data.length;
+               console.log(data.length);
+               if(data.trades.length > 0) {
                   document.getElementById("tradeHr").innerHTML = "<hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>";
                   var i;
-                  for(i = 0; i < data.length; i++) {
-                     var username = data[i].owner;
-                     var offered = data[i].item_offered;
-                     var requested = data[i].item_requested;
+                  for(i = 0; i < data.trades.length; i++) {
+                     var username = data.trades[i].owner;
+                     var offered = data.trades[i].item_offered;
+                     var requested = data.trades[i].item_requested;
                      console.log("Stuff: " + username, offered, requested);
-                     showTrade(data[i]);
+                     showTrade(data.trades[i]);
                   }
                   document.getElementById("tradeStatus").innerHTML = "Trade offers";
                }
@@ -172,6 +183,16 @@
                   document.getElementById("tradeStatus").innerHTML = "Found no trade offers";
                   document.getElementById("tradeHr").innerHTML = "";
                }
+               
+               if(offset == 0)
+                  document.getElementById('prevTradeItems').innerHTML = "<span class='nextPrevPage'>Prev page</span>";
+               else
+                  document.getElementById('prevTradeItems').innerHTML = "<a class='nextPrevPage link' onclick='switchTradePage(-1)' href='javascript:void(0);'>Prev page</a>";
+               console.log("STUFF: " + (offset+1)*limit);
+               if((offset+1)*limit >= data.length)
+                  document.getElementById('nextTradeItems').innerHTML = "<span class='nextPrevPage'>Next page</span>";
+               else
+                  document.getElementById('nextTradeItems').innerHTML = "<a class='nextPrevPage link' onclick='switchTradePage(1)' href='javascript:void(0);'>Next page</a>";
             }
          });
       }
@@ -195,8 +216,8 @@
                tradeItems.innerHTML += "<div id='trade" + trade.id + "' class='trade'></div>";
                var tradeDiv = document.getElementById('trade' + trade.id);
                console.log("Owner: " + trade.owner);
-               tradeDiv.innerHTML  =  "<div style='color: blue; height: 8px; top: -8%; z-index: 10' class='tradeLeft'><header style='font-weight: bold'><a class='userLink' href='inventory.html?user=" + trade.owner + "'>" + trade.owner + "</a></header></div>";
-               tradeDiv.innerHTML +=  "<div style='color: black; height: 8px; top: -8%; z-index: 10' class='tradeRight'><header style='font-weight: bold'>Wants</header></div>";
+               tradeDiv.innerHTML  =  "<div style='color: blue; height: 8px; top: -8%; z-index: 0' class='tradeLeft'><header style='font-weight: bold'><a class='userLink' href='inventory.html?user=" + trade.owner + "'>" + trade.owner + "</a></header></div>";
+               tradeDiv.innerHTML +=  "<div style='color: black; height: 8px; top: -8%; z-index: 0' class='tradeRight'><header style='font-weight: bold'>Wants</header></div>";
                tradeDiv.innerHTML +=  "<div class='tradeLeft' style='background-color: " + color[offer.rarity] + "'><img class='giftImg' style='width: 100%; height: 100%' src='" + offer.imgUrl + "'></div>";
                tradeDiv.innerHTML += "<div style='background-color: " + color[request.rarity] + "' class='tradeRight'><img class='giftImg' style='width: 100%; height: 100%' src='" + request.imgUrl + "'></div><br>";
                tradeDiv.innerHTML +=  "<div style='color: yellow; width: 60%; height: 8px; top: 70%' class='tradeLeft'><header style='white-space:nowrap; padding: 0; margin-right: 150px; font-weight: bold'>" + offer.name + "</header></div>";
@@ -209,8 +230,8 @@
       }
       
       function switchTradePage(a) {
-         var amount = a.value;
-         limit += limit*amount;
+         var amount = a;
+         offset += amount*limit;
          loadTradeItems();
       }
       
@@ -318,13 +339,15 @@
          var gifts = document.getElementById("gifts");
          var giftStatus = document.getElementById("giftStatus");
          var shopStatus = document.getElementById("shopStatus");
-         
+         giftStatus.innerHTML = "Loading gifts...";
+         shopStatus.innerHTML = "Loading shop items...";
          $.get("/getSession", function(data, status) {
             if(data.success == false) {
                console.log("Error getting user session: " + data.err);
                right.innerHTML = "<header class='promptLogin'>You are not logged in<br><a href='login.html' class='promptLogin' style='color: white'>Login</a></header>";
                giftStatus.innerHTML = "Log in to view your daily gift and shop items";
                document.getElementById("outerDivShop").style.backgroundColor = "rgb(255, 255, 255, 0)";
+               document.getElementById("expandShopText").innerHTML = "";
                //shopStatus.innerHTML = "Log in to view your daily store items";
             }
             else {
@@ -332,11 +355,9 @@
                
                right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br><a href='inventory.html' class='promptLogin' style='color: gray'>View inventory</a></header>";
                if(data.numGifts > 0) {
-                  giftStatus.innerHTML = "Loading gifts...";
                   document.getElementById('giftHr').innerHTML="<hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>";
                }
                if(data.numShop > 0) {
-                  shopStatus.innerHTML = "Loading shop items...";
                   document.getElementById('shopHr').innerHTML="<hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>";
                }
                if(data.numGifts > 0) {
@@ -401,9 +422,11 @@
       }
       
       function drawPage() {
+         document.getElementById("resetTime").innerHTML = "Time until gifts reset<br>---";
          setInterval(function(){
             updateResetTime();
          }, 1000);
+         document.getElementById("tradeStatus").innerHTML = "Loading trade offers...";
          getSession();
          loadTradeItems();
       }
@@ -484,41 +507,46 @@
    <span id='giftHr'></span>
    <div id="gifts" class="gifts"></div></div><br><br>
    
+   <!-- Shops div --->
    <div id="outerDivShop" class="outerGifts" style="text-align: center; max-width: 500px"><header><span class='status' id='shopStatus'></span>
    <span class='expand' id='expandShopText'>[<a onclick='collapseShop()' value='expanded' href="javascript:void(0);">collapse</a>]</span></header>
    <span id='shopHr'></span>
    <div id="shopItems" class="gifts"></div></div><br><br>
    
-   <div id="tradeBoard" class="outerGifts" style="text-align: center"><header><span class='status' id='tradeStatus'></span>
-   <span class='expand' id='expandTradeText'>[<a onclick='collapseTrade()' value='expanded' href="javascript:void(0);">collapse</a>]</span></header>
+   <!-- Trade offers div --->
+   <div id="tradeBoard" class="outerGifts" style="margin-bottom: 200px; text-align: center"><header><span class='status' id='tradeStatus'></span>
+   <span class='expand' id='expandTradeText'></span></header>
    <hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>
       <div id="tradeDiv" class="gifts">
+         <!-- Create trade offer form --->
          <div class="formOuter"><div class="formInner" style='width: 30%; margin-right: 16px'>
-            <h1 style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Post trade offer</h1>
+            <header style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Post trade offer</header>
             <form id="postTrade" method="GET" action="javascript:void(0);">
                <span class='formLeft'><header style='margin: 0px'>Item offer</header></span>
-               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='offer'></select></span><br>
+               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='offer'><option value="">Item name</option></select></span><br>
                <span class='formLeft'><header style='margin: 0px'>Item request</header></span>
-               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='request'></select></span><br>
+               <span class='formRight'><select style='width: 150px' value='' form='postTrade' id='request'><option value="">Item name</option></select></span><br>
                <header style='margin: 8px'><button type="button" style='width: 150px' onclick='postTrade()'>Create trade offer</button></header>
             </form>
          </div>
+         
+         <!-- Filter trades form --->
          <div class="formInner" style='width: 50%; margin-left: 16px'>
-            <h1 style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Filter trade offers</h1>
+            <header style="font-family: courier; font-weight: none; font-size: 24px; color: rgb(25, 25, 25); margin: 8px">Filter trade offers</header>
             <form id="filterTrade" method="GET" action="javascript:void(0);">
                <span class='formLeft'><header style='margin: 0px'>Search by item offered</header></span>
-               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='offerFilter'></select></span><br>
+               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='offerFilter'><option value="">Item name</option></select></span><br>
                <span class='formLeft'><header style='margin: 0px'>Search by item requested</header></span>
-               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='requestFilter'></select></span><br>
-               <header style='margin: 0px'><input form='filterTrade' id='applicableFilter' name='canTradeId' type='checkbox'>Show only requested items you own</header>
-               <br>
+               <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='requestFilter'><option value="">Item name</option></select></span><br>
+               <header style='margin: 0px'><input form='filterTrade' id='applicableFilter' name='canTradeId' type='checkbox'>Show only requested items you own</header><br>
                <header style='margin: 8px'><button type="button" style='width: 150px' onclick='loadTradeItems()'>Load new trade items</button></header>
             </form>
          </div>
          </div><span id='tradeHr'></span><br><br>
             
-         <div id='tradeItems' class='gifts' style='height: 250px'></div>
-         <a class='nextPrevPage' onclick='switchTradePage(this)' value='-1' href='javascript:void(0);'>Prev page</a><a class='nextPrevPage' onclick='switchTradePage(this)' value='1' href='javascript:void(0);'>Next page</a>
+         <!-- View all trades div --->
+         <div id='tradeItems' class='gifts'></div><br>
+         <span id='prevTradeItems'><span class='nextPrevPage'>Prev page</span></span><span id='nextTradeItems'><span class='nextPrevPage'>Next page</span></span>
       </div>
    </div>
    

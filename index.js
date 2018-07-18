@@ -87,7 +87,6 @@ function getTradeItems(req, res) {
    var username = null;
    if(req.session.username)
       username = req.session.username;
-   
    //Get offer item id
    pool.query('SELECT * FROM item WHERE item_name=$1', [ req.query.offer ], (err, data) => {
       if(!err && data.rows[0]) {
@@ -118,38 +117,53 @@ function getTradeItems(req, res) {
          }
          
          var query = 'SELECT * FROM trade ';
+         var query2 = 'SELECT * FROM trade ';
          var params = [];
+         var params2 = [];
          var index = 1;
          if((showApplicable == true || showApplicable == 'true') && username != null) {
             console.log("Got here");
-            query += `INNER JOIN inventory
-                      ON trade.item_requested = inventory.item_id
-                      WHERE inventory.owner=$` + index + ` AND trade_completed=$` + (index+1) + ` `;
+            query  += `INNER JOIN inventory
+                       ON trade.item_requested = inventory.item_id
+                       WHERE inventory.owner=$` + index + ` AND trade_completed=$` + (index+1) + ` `;
+            query2 += `INNER JOIN inventory
+                       ON trade.item_requested = inventory.item_id
+                       WHERE inventory.owner=$` + index + ` AND trade_completed=$` + (index+1) + ` `;
             params.push(username);
+            params2.push(username);
             params.push(false);
+            params2.push(false);
             index += 2;
          }
          else {
-            query += 'WHERE trade_completed=$' + index + ' ';
+            query  += 'WHERE trade_completed=$' + index + ' ';
+            query2 += 'WHERE trade_completed=$' + index + ' ';
             params.push(false);
+            params2.push(false);
             index++;
          }
          
          if(offerId != -1) {
-            query += 'AND item_offered=$' + index + ' ';
+            query  += 'AND item_offered=$' + index + ' ';
+            query2 += 'AND item_offered=$' + index + ' ';
             params.push(offerId);
+            params2.push(offerId);
             index++;
          }
          if(requestId != -1) {
-            query += 'AND item_requested=$' + index + ' ';
+            query  += 'AND item_requested=$' + index + ' ';
+            query2 += 'AND item_requested=$' + index + ' ';
             params.push(requestId);
+            params2.push(requestId);
             index++;
          }
          console.log("Stuff: " + showApplicable, username);
          
-         query += 'LIMIT $' + index + ' OFFSET $' + (index+1);
+         query  += 'LIMIT $' + index + ' OFFSET $' + (index+1);
+         query2 += 'OFFSET $' + index;
          params.push(req.query.limit);
          params.push(req.query.offset);
+         params2.push(req.query.offset);
          
          console.log("ids:", offerId, requestId);
          console.log("query:", query);
@@ -169,7 +183,19 @@ function getTradeItems(req, res) {
             for(var i = 0; i < data.rows.length; i++) {
                console.log(i + ": " + data.rows[i].item_offered, data.rows[i].item_requested);
             }
-            res.json(data.rows);
+            //Get max num trades
+            pool.query(query2, params2, (err, allTrades) => {
+               if(err || !allTrades.rows[0]) {
+                  console.log(err);
+                  res.json({success: false,
+                            err: err});
+               }
+               else {
+                  var numTrades = allTrades.rows.length;
+                  res.json({trades: data.rows,
+                            length: numTrades});
+               }
+            });
             return true;
          });
       });
@@ -1209,6 +1235,7 @@ function register(req, res) {
             res.json({success: false,
                       err: 'Email already taken',
                       code: 2}); //Email already exists
+         return false;
          }
          var date = getDate();
          var query2 = 'INSERT INTO "user" (first_name, last_name, username, password, email, gift_date) VALUES($1, $2, $3, $4, $5, $6)';
@@ -1219,6 +1246,7 @@ function register(req, res) {
                res.json({success: false,
                          err: err,
                          code: 3});
+            return false;
             }
             else {
                console.error("Successfully registered user, and added user to database. Logging user in now.");
