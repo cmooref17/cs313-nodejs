@@ -110,21 +110,18 @@
          });
       }
       
-      function loadTradeItems() {
+      async function loadTradeItems() {
+         document.getElementById("tradeStatus").innerHTML = "Loading trade offers...";
          var offerFilter = document.getElementById("offerFilter").value;
          var requestFilter = document.getElementById("requestFilter").value;
          var showApplicable = document.getElementById("applicableFilter").checked;
-         console.log("Loading trade items");
-         console.log(offerFilter, requestFilter, showApplicable);
          var url = "/getTradeItems?offset=" + offset + "&limit=" + limit + "&offer=" + offerFilter + "&request=" + requestFilter + "&showApplicable=" + showApplicable;
-         console.log(url);
          
          $.get('/showInventory', function(data, status) {
             if(data.success == false) {
                console.log('Error getting item names: ' + data.err);
             }
             else {
-               console.log('Getting item names...');
                var x = document.getElementById('offer');
                var i;
                x.innerHTML = "<option value='' selected >Item name</option>";
@@ -140,7 +137,6 @@
                console.log('Error getting item names: ' + data.err);
             }
             else {
-               console.log('Getting item names...');
                var x = document.getElementById('offerFilter');
                var y = document.getElementById('requestFilter');
                var z = document.getElementById('request');
@@ -174,7 +170,6 @@
                      var username = data.trades[i].owner;
                      var offered = data.trades[i].item_offered;
                      var requested = data.trades[i].item_requested;
-                     console.log("Stuff: " + username, offered, requested);
                      showTrade(data.trades[i]);
                   }
                   document.getElementById("tradeStatus").innerHTML = "Trade offers";
@@ -334,7 +329,7 @@
          });
       }
       
-      function getSession() {
+      async function getSession() {
          var right = document.getElementById("rightSign");
          var gifts = document.getElementById("gifts");
          var giftStatus = document.getElementById("giftStatus");
@@ -421,12 +416,11 @@
          });
       }
       
-      function drawPage() {
+      async function drawPage() {
          document.getElementById("resetTime").innerHTML = "Time until gifts reset<br>---";
          setInterval(function(){
             updateResetTime();
          }, 1000);
-         document.getElementById("tradeStatus").innerHTML = "Loading trade offers...";
          getSession();
          loadTradeItems();
       }
@@ -483,6 +477,14 @@
             x.innerHTML = 'expand';
          }
       }
+      
+      function changeLimit(input) {
+         if(input.value == '')
+            limit = 6;
+         else
+            limit = input.value;
+         console.log("new limit: " + limit);
+      }
   
    </script>
    
@@ -514,7 +516,7 @@
    <div id="shopItems" class="gifts"></div></div><br><br>
    
    <!-- Trade offers div --->
-   <div id="tradeBoard" class="outerGifts" style="margin-bottom: 200px; text-align: center"><header><span class='status' id='tradeStatus'></span>
+   <div id="tradeBoard" class="outerGifts" style="margin-bottom: 200px; padding-bottom: 16px; text-align: center"><header><span class='status' id='tradeStatus'></span>
    <span class='expand' id='expandTradeText'></span></header>
    <hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>
       <div id="tradeDiv" class="gifts">
@@ -538,6 +540,8 @@
                <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='offerFilter'><option value="">Item name</option></select></span><br>
                <span class='formLeft'><header style='margin: 0px'>Search by item requested</header></span>
                <span class='formRight' style='width: 35%'><select style='width: 150px' form='filterTrade' value='' id='requestFilter'><option value="">Item name</option></select></span><br>
+               <span class='formLeft'><header style='margin: 0px'>Items per page</header></span>
+               <span class='formRight' style='font-size: 12px; font-family: courier; width: 35%'><input style='text-align: left; width: 42px; margin-right: 17px' id='numPerPage' type='number' value='' onchange='changeLimit(this)'> (default 6)</span>
                <header style='margin: 0px'><input form='filterTrade' id='applicableFilter' name='canTradeId' type='checkbox'>Show only requested items you own</header><br>
                <header style='margin: 8px'><button type="button" style='width: 150px' onclick='loadTradeItems()'>Load new trade items</button></header>
             </form>
