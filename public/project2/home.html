@@ -13,6 +13,7 @@
       search_request = null;
       search_owner = null;
       timeUntilReset = 0;
+      loggedIn = false;
       
       function updateResetTime() {
          var hours;
@@ -349,7 +350,7 @@
             }
             else {
                timeUntilReset = data.timeUntilReset;
-               
+               loggedIn = true;
                right.innerHTML = "<header class='promptLogin welcome'>Welcome " + data.username + "!<br><a href='javascript:void(0);' onclick='signOut()' class='promptLogin' style='color: gray'>Logout</a><br><span id='userBells'>" + data.bells + "</span> bells<br><a href='inventory.html' class='promptLogin' style='color: gray'>View inventory</a></header>";
                if(data.numGifts > 0) {
                   document.getElementById('giftHr').innerHTML="<hr style='margin-top: 16px; margin-left: 16px; margin-right: 16px'>";
@@ -421,7 +422,7 @@
       async function drawPage() {
          document.getElementById("resetTime").innerHTML = "Time until gifts reset<br>---";
          setInterval(function(){
-            updateResetTime();
+            if(loggedIn == true) {updateResetTime();}
          }, 1000);
          getSession();
          loadTradeItems();
